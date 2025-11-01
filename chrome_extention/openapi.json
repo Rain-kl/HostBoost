@@ -1,0 +1,250 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "HostBoost",
+        "description": "",
+        "version": "1.0.0"
+    },
+    "tags": [],
+    "paths": {
+        "/host": {
+            "get": {
+                "summary": "获取 host",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "domain",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "example": "",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/%E6%9F%A5%E8%AF%A2%20Host%20%E5%8D%95%E6%9D%A1"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            },
+            "post": {
+                "summary": "新增 host",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "domain"
+                                ]
+                            },
+                            "example": {
+                                "domain": "aged-sandbar.info"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            },
+            "delete": {
+                "summary": "删除 host",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "domain"
+                                ]
+                            },
+                            "example": {
+                                "domain": "liquid-lieu.net"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        },
+        "/host/list": {
+            "get": {
+                "summary": "获取 host 列表",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/%E6%9F%A5%E8%AF%A2Host%E5%88%97%E8%A1%A8"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "查询Host列表": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "total": {
+                                "type": "integer"
+                            },
+                            "list": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Host%20%E5%8D%95%E6%9D%A1%E6%95%B0%E6%8D%AE"
+                                }
+                            }
+                        },
+                        "required": [
+                            "total",
+                            "list"
+                        ]
+                    }
+                },
+                "required": [
+                    "code",
+                    "message",
+                    "data"
+                ]
+            },
+            "Host 单条数据": {
+                "type": "object",
+                "properties": {
+                    "domain": {
+                        "type": "string"
+                    },
+                    "ip": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "domain",
+                    "ip",
+                    "type"
+                ]
+            },
+            "查询 Host 单条": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Host%20%E5%8D%95%E6%9D%A1%E6%95%B0%E6%8D%AE"
+                    }
+                },
+                "required": [
+                    "code",
+                    "message",
+                    "data"
+                ]
+            },
+            "增删结果": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            }
+        },
+        "securitySchemes": {}
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:15920",
+            "description": "开发环境"
+        }
+    ]
+}
