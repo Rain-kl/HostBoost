@@ -2,30 +2,31 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"os"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"hostMgr/internal/config"
 	"hostMgr/internal/host"
 	"hostMgr/internal/server"
 )
 
 var (
-	portFlag     = flag.String("port", "", "HTTP port for the server (overrides HOSTBOOST_PORT)")
-	dataFileFlag = flag.String("data-file", "", "path to the simulated hosts file (overrides HOSTBOOST_DATA_FILE)")
+	configFlag = flag.String("config", "config.yaml", "path to the configuration file")
 )
 
 func main() {
 	flag.Parse()
 
-	port := resolvePort(*portFlag)
-	hostFile := resolveHostFile(*dataFileFlag)
+	// 加载配置文件
+	cfg, err := config.Load(*configFlag)
+	if err != nil {
+		log.Fatalf("load config: %v", err)
+	}
 
-	repo, err := host.NewFileRepository(hostFile)
+	// 初始化 repository
+	repo, err := host.NewFileRepository(cfg.Data.HostFile)
 	if err != nil {
 		log.Fatalf("init repository: %v", err)
 	}
@@ -34,59 +35,26 @@ func main() {
 	handler := server.NewHandler(svc)
 
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware())
+	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware(cfg))
 	handler.RegisterRoutes(router)
 
-	log.Printf("Host service listening on %s using data file %s", port, hostFile)
+	port := cfg.Server.NormalizePort()
+	log.Printf("Host service listening on %s using data file %s", port, cfg.Data.HostFile)
+	log.Printf("Config file: %s", *configFlag)
 	if err := router.Run(port); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
 
-func resolvePort(flagValue string) string {
-	defaultPort := ":15920"
-
-	envPort := os.Getenv("HOSTBOOST_PORT")
-	if envPort != "" {
-		if envPort[0] != ':' {
-			return fmt.Sprintf(":%s", envPort)
-		}
-		return envPort
+func buildCorsMiddleware(cfg *config.Config) gin.HandlerFunc {
+	corsConfig := cors.Config{
+		AllowOrigins:     cfg.CORS.AllowOrigins,
+		AllowMethods:     cfg.CORS.AllowMethods,
+		AllowHeaders:     cfg.CORS.AllowHeaders,
+		ExposeHeaders:    cfg.CORS.ExposeHeaders,
+		AllowCredentials: cfg.CORS.AllowCredentials,
+		MaxAge:           cfg.CORS.GetMaxAge(),
 	}
 
-	if flagValue != "" {
-		if flagValue[0] != ':' {
-			return fmt.Sprintf(":%s", flagValue)
-		}
-		return flagValue
-	}
-
-	return defaultPort
-}
-
-func resolveHostFile(flagValue string) string {
-	defaultFile := "hosts.json"
-
-	if file := os.Getenv("HOSTBOOST_DATA_FILE"); file != "" {
-		return file
-	}
-
-	if flagValue != "" {
-		return flagValue
-	}
-
-	return defaultFile
-}
-
-func buildCorsMiddleware() gin.HandlerFunc {
-	cfg := cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization", "X-Requested-With"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: false,
-		MaxAge:           12 * time.Hour,
-	}
-
-	return cors.New(cfg)
+	return cors.New(corsConfig)
 }

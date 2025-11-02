@@ -1,14 +1,62 @@
 # Host Manager Demo
 
-Simple Go HTTP service implementing the host CRUD endpoints described in `openapi.json`. The service uses the local file `hosts_mock.json` as its data store so it never touches the real operating system hosts file.
+Simple Go HTTP service implementing the host CRUD endpoints described in `openapi.json`. The service uses the local file `hosts.json` as its data store so it never touches the real operating system hosts file.
 
-## Run
+## 配置说明
+
+程序使用 YAML 配置文件进行配置管理。首次运行时，如果配置文件不存在，会自动创建默认的 `config.yaml` 文件。
+
+### 配置文件示例
+
+```yaml
+# 服务器配置
+server:
+  port: ":15920"
+
+# 数据存储配置
+data:
+  host_file: "hosts.json"
+
+# CORS 跨域配置
+cors:
+  allow_origins:
+    - "*"
+  allow_methods:
+    - "GET"
+    - "POST"
+    - "DELETE"
+    - "OPTIONS"
+  allow_headers:
+    - "Content-Type"
+    - "Authorization"
+    - "X-Requested-With"
+  expose_headers:
+    - "Content-Length"
+  allow_credentials: false
+  max_age: "12h"
+```
+
+## 运行
+
+### 使用默认配置文件（config.yaml）
 
 ```bash
 go run .
 ```
 
-The server listens on `http://localhost:8080` by default.
+### 指定配置文件
+
+```bash
+go run . --config /path/to/custom-config.yaml
+```
+
+或者
+
+```bash
+go run . --config=myconfig.yaml
+```
+
+服务器默认监听在 `http://localhost:15920`（可通过配置文件修改）。
 
 ## Sample Requests  
 
