@@ -2,6 +2,11 @@
 <div align="center">
 
 # 🚀 HostBoost
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
 
 通过 CDN IP 优选和智能 Hosts 管理,显著提升网站访问速度
 
@@ -99,6 +104,36 @@ flowchart TB
 - Chrome/Edge 浏览器(版本 90+)
 - 管理员权限(用于修改 Hosts 文件)
 
+### 开发运行
+
+```bash
+git clone https://github.com/Rain-kl/HostBoost.git
+cd HostBoost
+```
+1. 编译浏览器拓展
+```bash
+cd chrome_extention
+pnpm i
+pnpm build
+```
+本地生成 build 文件夹后, 在 chrome 拓展管理界面, 加载未打包的拓展程序
+
+2. 运行 Host Manager
+
+```bash
+cd host_manager
+go mod tidy
+go run main.go
+```
+
+3. 运行 Cloudflare 优选器
+
+```bash
+cd cloudfla_optimization
+go mod tidy
+go run main.go
+```
+
 ### 使用方法
 
 1. 启动所有服务后,Chrome 扩展图标会变为可用状态
@@ -153,13 +188,6 @@ sequenceDiagram
 3. **配置**: 修改 Hosts 文件并刷新 DNS 缓存
 4. **优化(可选)**: CF Optimizer 主动推送最优 IP
 
-## 📊 性能指标
-
-- **加速效果**: 平均提速 30%-70%
-- **优选频率**: 每 10 分钟自动优选
-- **响应时间**: 配置生效 < 2 秒
-- **资源占用**: 内存 < 50MB,CPU < 5%
-
 ## 🛣️ 路线图
 
 ### 当前版本 (v1.0)
@@ -208,6 +236,9 @@ A: 目前支持使用 Cloudflare CDN 的网站,未来将支持更多 CDN。
 
 欢迎贡献代码、报告问题或提出建议!
 
+不同模块在不同的 git 分支上开发, 贡献时请向对应的分支提交代码
+
+
 ## 📄 许可证
 
 本项目采用 GPL-3.0 许可证。详见 [LICENSE](LICENSE) 文件。
@@ -219,3 +250,16 @@ A: 目前支持使用 Cloudflare CDN 的网站,未来将支持更多 CDN。
 **如果这个项目对你有帮助,请给个 ⭐️ Star 吧!**
 
 </div>
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[contributors-shield]: https://img.shields.io/github/contributors/Rain-kl/HostBoost.svg?style=flat-square
+[contributors-url]: https://github.com/Rain-kl/HostBoost/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Rain-kl/HostBoost.svg?style=flat-square
+[forks-url]: https://github.com/Rain-kl/HostBoost/network/members
+[stars-shield]: https://img.shields.io/github/stars/Rain-kl/HostBoost.svg?style=flat-square
+[stars-url]: https://github.com/Rain-kl/HostBoost/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Rain-kl/HostBoost.svg?style=flat-square
+[issues-url]: https://github.com/Rain-kl/HostBoost/issues
+[license-shield]: https://img.shields.io/github/license/Rain-kl/HostBoost.svg?style=flat-square
+[license-url]: https://github.com/Rain-kl/HostBoost/blob/master/LICENSE.txt
