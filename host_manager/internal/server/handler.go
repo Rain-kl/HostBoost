@@ -1,12 +1,12 @@
 package server
 
 import (
-	"awesomeProject/code"
+	"hostMgr/internal/code"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	"awesomeProject/internal/host"
+	"hostMgr/internal/host"
 )
 
 // Handler bundles HTTP handlers for host operations.

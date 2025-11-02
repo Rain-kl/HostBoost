@@ -10,8 +10,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"awesomeProject/internal/host"
-	"awesomeProject/internal/server"
+	"hostMgr/internal/host"
+	"hostMgr/internal/server"
 )
 
 var (

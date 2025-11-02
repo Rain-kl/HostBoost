@@ -1,4 +1,4 @@
-module awesomeProject
+module hostMgr
 
 go 1.24
 

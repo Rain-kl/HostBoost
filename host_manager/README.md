@@ -10,7 +10,7 @@ go run .
 
 The server listens on `http://localhost:8080` by default.
 
-## Sample Requests
+## Sample Requests  
 
 - List all hosts:
   ```bash
