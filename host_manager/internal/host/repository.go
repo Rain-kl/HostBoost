@@ -100,6 +100,37 @@ func (r *FileRepository) Delete(domain string) error {
 	return r.persistLocked()
 }
 
+// ListByType returns all hosts with the specified type.
+func (r *FileRepository) ListByType(hostType string) []Host {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	result := make([]Host, 0)
+	for _, h := range r.hosts {
+		if h.Type == hostType {
+			result = append(result, h)
+		}
+	}
+
+	return result
+}
+
+// UpdateIP updates the IP address of a host by domain.
+func (r *FileRepository) UpdateIP(domain, newIP string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	host, exists := r.hosts[domain]
+	if !exists {
+		return ErrHostNotFound
+	}
+
+	host.IP = newIP
+	r.hosts[domain] = host
+
+	return r.persistLocked()
+}
+
 func (r *FileRepository) ensureFile() error {
 	dir := filepath.Dir(r.path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {

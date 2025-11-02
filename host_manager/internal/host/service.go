@@ -3,6 +3,8 @@ package host
 import (
 	"errors"
 	"fmt"
+	"hostMgr/internal/extSvc"
+	"hostMgr/internal/opt"
 	"strings"
 )
 
@@ -38,15 +40,25 @@ func (s *Service) GetHost(domain string) (Host, error) {
 
 // CreateHost validates and registers a new host entry.
 func (s *Service) CreateHost(req AddHostRequest) error {
+	cdnType := "cloudflare"
 	req.Domain = normalizeDomain(req.Domain)
 	if req.Domain == "" {
 		return errors.New("domain is required")
 	}
 
+	optSvc, ok := extSvc.OptService.(*opt.Service)
+	if !ok || optSvc == nil {
+		return errors.New("opt service not initialized")
+	}
+
+	_, optIp, err := optSvc.GetCurrentOpt(cdnType)
+	if err != nil {
+		return err
+	}
 	host := Host{
 		Domain: req.Domain,
-		IP:     "6.6.6.6",
-		Type:   "cloudflare",
+		IP:     optIp.IP,
+		Type:   cdnType,
 	}
 
 	if err := s.repo.Create(host); err != nil {
@@ -74,6 +86,55 @@ func (s *Service) DeleteHost(domain string) error {
 	}
 
 	return nil
+}
+
+// UpdateHostsByType updates the IP address for all hosts of the specified type.
+// It fetches the current optimal IP for the given type from opt service,
+// then updates all hosts with that type to use this IP.
+func (s *Service) UpdateHostsByType(hostType string) (int, error) {
+	if hostType == "" {
+		return 0, errors.New("host type is required")
+	}
+
+	// Get current optimal IP for the specified type
+	optSvc, ok := extSvc.OptService.(*opt.Service)
+	if !ok || optSvc == nil {
+		return 0, errors.New("opt service not initialized")
+	}
+
+	_, optInfo, err := optSvc.GetCurrentOpt(hostType)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get current opt for type %s: %w", hostType, err)
+	}
+
+	newIP := optInfo.IP
+	if newIP == "" {
+		return 0, fmt.Errorf("no IP found for type %s", hostType)
+	}
+
+	// Get all hosts with the specified type
+	hosts := s.repo.ListByType(hostType)
+	if len(hosts) == 0 {
+		return 0, fmt.Errorf("no hosts found with type %s", hostType)
+	}
+
+	// Update each host's IP
+	updatedCount := 0
+	var updateErrors []string
+
+	for _, host := range hosts {
+		if err := s.repo.UpdateIP(host.Domain, newIP); err != nil {
+			updateErrors = append(updateErrors, fmt.Sprintf("failed to update %s: %v", host.Domain, err))
+		} else {
+			updatedCount++
+		}
+	}
+
+	if len(updateErrors) > 0 {
+		return updatedCount, fmt.Errorf("updated %d hosts with IP %s, but encountered errors: %s", updatedCount, newIP, strings.Join(updateErrors, "; "))
+	}
+
+	return updatedCount, nil
 }
 
 func normalizeDomain(domain string) string {

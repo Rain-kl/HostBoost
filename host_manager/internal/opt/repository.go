@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrNoOptDataFound = errors.New("no opt data found")
-	ErrEmptyOptList   = errors.New("opt list is empty")
-	ErrInvalidType    = errors.New("invalid type")
+	ErrNoOptDataFound    = errors.New("no opt data found")
+	ErrEmptyOptList      = errors.New("opt list is empty")
+	ErrInvalidType       = errors.New("invalid type")
+	ErrOnlyOneOptRemains = errors.New("cannot change opt: only one IP remains in the list")
 )
 
 // Repository 优选数据仓库

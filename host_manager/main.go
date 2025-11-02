@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"hostMgr/config"
+	"hostMgr/internal/extSvc"
 	"log"
 	"os"
 
@@ -62,7 +63,8 @@ func main() {
 	}
 
 	// 初始化 host service
-	svc := host.NewService(repo)
+	hostSvc := host.NewService(repo)
+	extSvc.HostService = hostSvc
 
 	// 初始化 opt repository
 	optRepo, err := opt.NewRepository(cfg.Data.OptFile)
@@ -72,8 +74,9 @@ func main() {
 
 	// 初始化 opt service
 	optSvc := opt.NewService(optRepo)
+	extSvc.OptService = optSvc
 
-	handler := server.NewHandler(svc, optSvc)
+	handler := server.NewHandler(hostSvc, optSvc)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware(cfg))
