@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "description": "A simple Chrome extension built with Vue 3 + Vite",
     "action": {
-        "default_popup": "popup.html",
+        "default_popup": "index.html",
         "default_icon": "icon.png"
     },
     "permissions": [
