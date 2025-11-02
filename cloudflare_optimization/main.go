@@ -4,18 +4,19 @@ import (
 	"cf_opt/config"
 	"flag"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"runtime"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"cf_opt/task"
 	"cf_opt/utils"
+
+	"github.com/robfig/cron/v3"
 )
 
 var (
-	version, versionNew string
+	version = "cfst-v2.3.4" // 版本号
 )
 
 func init() {
@@ -72,6 +73,19 @@ https://github.com/XIU2/CloudflareSpeedTest
     -allip
         测速全部的IP；对 IP 段中的每个 IP (仅支持 IPv4) 进行测速；(默认 每个 /24 段随机测速一个 IP)
 
+    -schedule
+        启用定时任务；使程序以定时任务模式运行，按照 Cron 表达式定期执行测速；(默认 关闭)
+    -cron "0 */6 * * *"
+        Cron 表达式；指定定时任务的执行时间，支持标准 5 段格式或秒级 6 段格式；(默认 "0 */6 * * *")
+        格式说明：
+          标准格式(5段): 分 时 日 月 周
+          秒级格式(6段): 秒 分 时 日 月 周
+        示例：
+          每6小时执行: 0 */6 * * *
+          每天凌晨执行: 0 0 * * *
+          每2小时执行: 0 */2 * * *
+          每30分钟执行: */30 * * * *
+
     -debug
         调试输出模式；会在一些非预期情况下输出更多日志以便判断原因；(默认 关闭)
 
@@ -84,16 +98,28 @@ https://github.com/XIU2/CloudflareSpeedTest
 `
 	var minDelay, maxDelay, downloadTime int
 	var maxLossRate float64
+	var enableSchedule bool
+	var cronExpression string
 
-	// 添加配置文件参数
-	flag.StringVar(&configFile, "c", "config.yaml", "配置文件路径")
-	flag.BoolVar(&printVersion, "v", false, "打印程序版本")
+	// 先临时解析以获取配置文件路径
+	var tempConfigFile string
+	var tempVersion bool
+	tempFlagSet := flag.NewFlagSet("temp", flag.ContinueOnError)
+	tempFlagSet.StringVar(&tempConfigFile, "c", "config.yaml", "")
+	tempFlagSet.BoolVar(&tempVersion, "v", false, "")
+	tempFlagSet.Parse(os.Args[1:])
 
-	// 先解析 -c 和 -v 参数
-	flag.Parse()
+	// 如果是 -v，设置 printVersion 然后继续（稍后会退出）
+	if tempVersion {
+		printVersion = true
+		configFile = tempConfigFile
+	} else {
+		configFile = tempConfigFile
+	}
 
 	// 加载配置文件（先设置默认值）
-	config := loadConfigFile(configFile)
+	globalConfig = loadConfigFile(configFile)
+	config := globalConfig
 
 	// 用配置文件的值初始化变量
 	task.Routines = config.Routines
@@ -116,8 +142,12 @@ https://github.com/XIU2/CloudflareSpeedTest
 	task.Disable = config.DisableDownload
 	task.TestAll = config.TestAll
 	utils.Debug = config.Debug
+	enableSchedule = config.EnableSchedule
+	cronExpression = config.CronExpression
 
-	// 重新定义命令行参数（用于覆盖配置文件）
+	// 定义所有命令行参数
+	flag.StringVar(&configFile, "c", configFile, "配置文件路径")
+	flag.BoolVar(&printVersion, "v", printVersion, "打印程序版本")
 	flag.IntVar(&task.Routines, "n", task.Routines, "延迟测速线程")
 	flag.IntVar(&task.PingTimes, "t", task.PingTimes, "延迟测速次数")
 	flag.IntVar(&task.TestCount, "dn", task.TestCount, "下载测速数量")
@@ -144,8 +174,11 @@ https://github.com/XIU2/CloudflareSpeedTest
 
 	flag.BoolVar(&utils.Debug, "debug", utils.Debug, "调试输出模式")
 
+	flag.BoolVar(&enableSchedule, "schedule", enableSchedule, "启用定时任务")
+	flag.StringVar(&cronExpression, "cron", cronExpression, "Cron 表达式")
+
 	flag.Usage = func() { fmt.Print(help) }
-	// 再次解析以应用命令行参数覆盖
+	// 解析命令行参数
 	flag.Parse()
 
 	if task.MinSpeed > 0 && time.Duration(maxDelay)*time.Millisecond == utils.InputMaxDelay {
@@ -159,14 +192,12 @@ https://github.com/XIU2/CloudflareSpeedTest
 
 	if printVersion {
 		println(version)
-		fmt.Println("检查版本更新中...")
-		checkUpdate()
-		if versionNew != "" {
-			utils.Yellow.Printf("*** 发现新版本 [%s]！请前往 [https://github.com/XIU2/CloudflareSpeedTest] 更新！ ***", versionNew)
-		} else {
-			utils.Green.Println("当前为最新版本 [" + version + "]！")
-		}
 		os.Exit(0)
+	}
+
+	// 如果启用定时任务，则启动 cron 调度器
+	if enableSchedule {
+		startScheduler(cronExpression)
 	}
 }
 
@@ -193,49 +224,81 @@ func loadConfigFile(filename string) *config.Config {
 	return yamlConfig
 }
 
-func main() {
+// 全局配置变量
+var globalConfig *config.Config
+
+func run() {
 	task.InitRandSeed() // 置随机数种子
 
 	fmt.Printf("# XIU2/CloudflareSpeedTest %s \n\n", version)
 
 	// 开始延迟测速 + 过滤延迟/丢包
 	pingData := task.NewPing().Run().FilterDelay().FilterLossRate()
-	print("ok")
 	// 开始下载测速
 	speedData := task.TestDownloadSpeed(pingData)
-	print("ok")
 	utils.ExportCsv(speedData) // 输出文件
-	speedData.Print()          // 打印结果
-	endPrint()                 // 根据情况选择退出方式（针对 Windows）
+	speedData.Print()
+
+	// 如果启用了自动上报，则上报结果
+	if globalConfig != nil && globalConfig.EnableReport && len(speedData) > 0 {
+		fmt.Println("\n正在上报结果到服务器...")
+		reportConfig := &task.ReportConfig{
+			ServerURL: globalConfig.ReportServerURL,
+			Type:      globalConfig.ReportType,
+			Timeout:   globalConfig.ReportTimeout,
+		}
+		if err := task.Report(speedData, reportConfig); err != nil {
+			fmt.Printf("上报失败: %v\n", err)
+		}
+	}
 }
 
-// 根据情况选择退出方式（针对 Windows）
-func endPrint() {
-	if utils.NoPrintResult() { // 如果不需要打印测速结果，则直接退出
-		return
+// startScheduler 启动定时任务调度器
+func startScheduler(cronExpr string) {
+	c := cron.New(cron.WithSeconds()) // 支持秒级精度的 cron 表达式
+
+	// 添加定时任务
+	_, err := c.AddFunc(cronExpr, func() {
+		fmt.Printf("\n[%s] 定时任务开始执行...\n", time.Now().Format("2006-01-02 15:04:05"))
+		run()
+		fmt.Printf("[%s] 定时任务执行完成\n\n", time.Now().Format("2006-01-02 15:04:05"))
+	})
+
+	if err != nil {
+		fmt.Printf("添加定时任务失败: %v\n", err)
+		fmt.Printf("Cron 表达式格式错误，请检查配置\n")
+		fmt.Printf("标准格式(5段): 分 时 日 月 周\n")
+		fmt.Printf("秒级格式(6段): 秒 分 时 日 月 周\n")
+		fmt.Printf("示例:\n")
+		fmt.Printf("  每6小时: 0 */6 * * *\n")
+		fmt.Printf("  每天0点: 0 0 * * *\n")
+		fmt.Printf("  每2小时: 0 */2 * * *\n")
+		fmt.Printf("  每30分钟: */30 * * * *\n")
+		os.Exit(1)
 	}
-	if runtime.GOOS == "windows" { // 如果是 Windows 系统，则需要按下 回车键 或 Ctrl+C 退出（避免通过双击运行时，测速完毕后直接关闭）
-		fmt.Printf("按下 回车键 或 Ctrl+C 退出。")
-		fmt.Scanln()
-	}
+
+	// 启动调度器
+	c.Start()
+
+	fmt.Printf("定时任务已启动，Cron 表达式: %s\n", cronExpr)
+	fmt.Printf("下次执行时间: %s\n", c.Entries()[0].Next.Format("2006-01-02 15:04:05"))
+	fmt.Printf("按 Ctrl+C 停止服务\n\n")
+
+	// 立即执行一次
+	fmt.Printf("[%s] 首次执行任务...\n", time.Now().Format("2006-01-02 15:04:05"))
+	run()
+	fmt.Printf("[%s] 首次执行完成\n\n", time.Now().Format("2006-01-02 15:04:05"))
+
+	// 等待中断信号
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\n收到停止信号，正在关闭服务...")
+	c.Stop()
+	fmt.Println("服务已停止")
 }
 
-// 检查更新
-func checkUpdate() {
-	timeout := 10 * time.Second
-	client := http.Client{Timeout: timeout}
-	res, err := client.Get("https://api.xiu2.xyz/ver/cloudflarespeedtest.txt")
-	if err != nil {
-		return
-	}
-	// 读取资源数据 body: []byte
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-	// 关闭资源流
-	defer res.Body.Close()
-	if string(body) != version {
-		versionNew = string(body)
-	}
+func main() {
+	run()
 }

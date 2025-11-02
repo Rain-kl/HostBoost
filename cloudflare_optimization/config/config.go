@@ -40,6 +40,16 @@ type Config struct {
 
 	// 其他
 	Debug bool `yaml:"debug"` // 调试模式
+
+	// 定时任务相关
+	EnableSchedule bool   `yaml:"enable_schedule"` // 是否启用定时任务
+	CronExpression string `yaml:"cron_expression"` // Cron 表达式
+
+	// 上报相关
+	EnableReport    bool   `yaml:"enable_report"`     // 是否启用自动上报
+	ReportServerURL string `yaml:"report_server_url"` // 上报服务器地址
+	ReportType      string `yaml:"report_type"`       // 上报类型
+	ReportTimeout   int    `yaml:"report_timeout"`    // 上报超时时间(秒)
 }
 
 // DefaultConfig 返回默认配置
@@ -65,6 +75,12 @@ func DefaultConfig() *Config {
 		PrintNum:        10,
 		Output:          "result.csv",
 		Debug:           false,
+		EnableSchedule:  true,
+		CronExpression:  "0 0 0/3 * * ?", // 默认每3小时执行一次
+		EnableReport:    true,
+		ReportServerURL: "http://127.0.0.1:15920",
+		ReportType:      "cloudflare",
+		ReportTimeout:   10,
 	}
 }
 
@@ -155,6 +171,28 @@ output: "` + config.Output + `"
 # ===== 其他 =====
 # 调试模式 (默认 false)
 debug: ` + fmt.Sprintf("%v", config.Debug) + `
+
+# ===== 定时任务相关 =====
+# 是否启用定时任务 (默认 false)
+enable_schedule: ` + fmt.Sprintf("%v", config.EnableSchedule) + `
+
+# Cron 表达式 (默认 "0 */1 * * *" 表示每1小时执行一次)
+# 格式: 分 时 日 月 周
+# 示例: "0 0 * * *" 每天0点, "0 */2 * * *" 每2小时, "0 0 * * 0" 每周日0点
+cron_expression: "` + config.CronExpression + `"
+
+# ===== 上报相关 =====
+# 是否启用自动上报 (默认 false)
+enable_report: ` + fmt.Sprintf("%v", config.EnableReport) + `
+
+# 上报服务器地址 (默认 http://127.0.0.1:15920)
+report_server_url: "` + config.ReportServerURL + `"
+
+# 上报类型 (默认 "msn")
+report_type: "` + config.ReportType + `"
+
+# 上报超时时间，单位秒 (默认 10)
+report_timeout: ` + fmt.Sprintf("%d", config.ReportTimeout) + `
 `
 
 	return os.WriteFile(filename, []byte(content), 0644)
