@@ -166,16 +166,23 @@ sequenceDiagram
 
 - [x] 基础架构设计
 - [x] 项目白皮书
-- [ ] Chrome 扩展开发
-- [ ] Host Manager 核心功能
-- [ ] CloudflareSpeedTest 改造
+- [x] Chrome 扩展开发
+- [x] Host Manager 核心功能
+- [x] CloudflareSpeedTest 改造
 
-### 未来计划
+### 下个版本 (v1.x)
+
+- [ ] 安全防护
+- [ ] action 发布
+- [ ] cdn检测
+- [ ] 优化使用
+
+### 未来版本 (v2.x)
 
 - [ ] 支持更多 CDN 提供商
 - [ ] 图形化配置界面
 - [ ] 性能监控面板
-- [ ] 多浏览器支持
+- [ ] firefox支持
 
 ## 常见问题
 
