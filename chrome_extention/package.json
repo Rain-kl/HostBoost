@@ -10,11 +10,11 @@
     "openapi": "node openapi.config.js"
   },
   "dependencies": {
+    "axios": "^1.13.1",
     "vue": "^3.5.22"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
-    "@umijs/openapi": "^1.14.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "tslib": "^2.8.1",
