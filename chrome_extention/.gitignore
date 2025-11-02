@@ -1,93 +1,24 @@
-# =========================
-# Chrome Extension / WebExtension
-# =========================
-
-# 打包产物（按你实际输出目录调整：dist/ build/ out/）
-dist/
-build/
-out/
-web-ext-artifacts/
-.plasmo/
-.plasmo/tmp/
-
-# Chrome/Edge 打包文件与私钥（千万别泄露）
-*.crx
-*.nex
-*.pem
-*.pfx
-# 常见发布压缩包
-*.zip
-
-# web-ext（跨浏览器开发工具）生成的本地标识文件
-.web-extension-id
-
-# 调试与缓存
+# Logs
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-coverage/
-.cache/
-.tmp/
-temp/
-*.tmp
+lerna-debug.log*
 
-# Source maps（若不希望发布源码映射，忽略构建目录下的 .map）
-# 若你需要保留调试，请删除下面一行
-dist/**/*.map
-build/**/*.map
-out/**/*.map
+node_modules
+dist
+dist-ssr
+*.local
 
-# 环境变量（按需保留示例模板 .env.example）
-.env
-.env.*
-!.env.example
-
-# 依赖目录
-node_modules/
-
-# =========================
-# 前端工具与框架（按需使用）
-# =========================
-# Vite / Rollup / Webpack 缓存
-.vite/
-.rpt2_cache/
-.esbuild/
-.nuxt/
-.next/
-.svelte-kit/
-
-# TypeScript
-*.tsbuildinfo
-
-# 测试
-.junit/
-test-results/
-playwright-report/
-playwright/.cache/
-.cypress/
-cypress/videos/
-cypress/screenshots/
-
-# =========================
-# 编辑器与操作系统
-# =========================
-# macOS / Windows
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-
-# VS Code（如果团队共享推荐设置，可删除此忽略）
-.vscode/
-.history/
-
-# JetBrains / IntelliJ / WebStorm
-.idea/
-*.iml
-
-# =========================
-# 你可能不想忽略的文件（提示）
-# =========================
-# - manifest.json（必须纳入版本控制）
-# - 扩展图标与声明文件（/public 或 /assets 下）
-# - 锁文件：package-lock.json / pnpm-lock.yaml / yarn.lock（建议提交）
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
