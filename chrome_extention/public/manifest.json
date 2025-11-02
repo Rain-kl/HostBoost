@@ -1,0 +1,14 @@
+{
+    "manifest_version": 3,
+    "name": "Vue3 HelloWorld Extension",
+    "version": "1.0.0",
+    "description": "A simple Chrome extension built with Vue 3 + Vite",
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "icon.png"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab"
+    ]
+}
