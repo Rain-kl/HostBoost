@@ -1,7 +1,7 @@
 package server
 
 import (
-	"hostMgr/internal/code"
+	"hostMgr/common/code"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

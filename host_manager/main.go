@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"hostMgr/config"
 	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"hostMgr/internal/config"
 	"hostMgr/internal/host"
 	"hostMgr/internal/server"
 )
