@@ -1,10 +1,11 @@
 <template>
-  <div style="width: 200px; height: 120px; display: flex; justify-content: center; align-items: center; background: #282c34; color: white;">
-    <h2>Hello World!</h2>
-  </div>
+<!--  <HostManagement />-->
+  <Popup/>
 </template>
 
 <script setup>
+import HostManagement from "@/view/HostManagement.vue";
+import Popup from "@/view/Popup.vue";
 </script>
 
 <style scoped>
