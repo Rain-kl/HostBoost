@@ -1,6 +1,6 @@
 <template>
-  <div style="padding: 10px; font-family: sans-serif; text-align: center;">
-    <h2>当前域名</h2>
+  <div>
+    <h2 class="text-2xl">当前域名</h2>
     <p v-if="domain">{{ domain }}</p>
     <p v-else>正在获取...</p>
 
