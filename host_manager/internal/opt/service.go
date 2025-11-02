@@ -1,19 +1,22 @@
 package opt
 
 import (
+	"hostMgr/hostsync"
 	"hostMgr/internal/extSvc"
 	"log"
 )
 
 // Service 优选服务
 type Service struct {
-	repo *Repository
+	repo   *Repository
+	syncer *hostsync.Syncer
 }
 
 // NewService 创建新的优选服务
 func NewService(repo *Repository) *Service {
 	return &Service{
-		repo: repo,
+		repo:   repo,
+		syncer: hostsync.NewSyncer("hosts.json"),
 	}
 }
 
@@ -44,6 +47,11 @@ func (s *Service) ReportOpt(req ReportRequest) error {
 		}
 	} else {
 		log.Printf("Warning: host service not available for updating hosts (type=%s)", req.Type)
+	}
+
+	// 同步到系统 hosts 文件
+	if err := s.syncer.Sync(); err != nil {
+		log.Printf("Warning: failed to sync hosts to system: %v", err)
 	}
 
 	return nil
@@ -81,6 +89,11 @@ func (s *Service) ChangeOpt(optType string) error {
 		}
 	} else {
 		log.Printf("Warning: host service not available for updating hosts after changing opt (type=%s)", optType)
+	}
+
+	// 同步到系统 hosts 文件
+	if err := s.syncer.Sync(); err != nil {
+		log.Printf("Warning: failed to sync hosts to system: %v", err)
 	}
 
 	return nil

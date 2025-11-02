@@ -3,19 +3,25 @@ package host
 import (
 	"errors"
 	"fmt"
+	"hostMgr/hostsync"
 	"hostMgr/internal/extSvc"
 	"hostMgr/internal/opt"
+	"log"
 	"strings"
 )
 
 // Service coordinates host operations and validation.
 type Service struct {
-	repo *FileRepository
+	repo   *FileRepository
+	syncer *hostsync.Syncer
 }
 
 // NewService instantiates a host service.
 func NewService(repo *FileRepository) *Service {
-	return &Service{repo: repo}
+	return &Service{
+		repo:   repo,
+		syncer: hostsync.NewSyncer("hosts.json"),
+	}
 }
 
 // ListHosts retrieves all registered hosts.
@@ -68,6 +74,11 @@ func (s *Service) CreateHost(req AddHostRequest) error {
 		return err
 	}
 
+	// 同步到系统 hosts 文件
+	if err := s.syncer.Sync(); err != nil {
+		log.Printf("Warning: failed to sync hosts to system: %v", err)
+	}
+
 	return nil
 }
 
@@ -83,6 +94,11 @@ func (s *Service) DeleteHost(domain string) error {
 			return fmt.Errorf("host %s not found", domain)
 		}
 		return err
+	}
+
+	// 同步到系统 hosts 文件
+	if err := s.syncer.Sync(); err != nil {
+		log.Printf("Warning: failed to sync hosts to system: %v", err)
 	}
 
 	return nil

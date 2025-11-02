@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"hostMgr/config"
 	"hostMgr/internal/extSvc"
 	"log"
 	"os"
@@ -50,7 +51,7 @@ func main() {
 	}
 
 	// 加载配置文件
-	cfg, err := Load(configPath)
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		log.Fatalf("load config: %v", err)
 	}
@@ -108,7 +109,7 @@ func printHelp() {
 	fmt.Println("  host_manager --version")
 }
 
-func buildCorsMiddleware(cfg *Config) gin.HandlerFunc {
+func buildCorsMiddleware(cfg *config.Config) gin.HandlerFunc {
 	corsConfig := cors.Config{
 		AllowOrigins:     cfg.CORS.AllowOrigins,
 		AllowMethods:     cfg.CORS.AllowMethods,
