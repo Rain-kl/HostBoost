@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/XIU2/CloudflareSpeedTest/utils"
+	"cf_opt/utils"
 )
 
 const (

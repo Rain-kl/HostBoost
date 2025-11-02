@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cf_opt/config"
 	"flag"
 	"fmt"
 	"io"
@@ -9,8 +10,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/XIU2/CloudflareSpeedTest/task"
-	"github.com/XIU2/CloudflareSpeedTest/utils"
+	"cf_opt/task"
+	"cf_opt/utils"
 )
 
 var (
@@ -19,12 +20,15 @@ var (
 
 func init() {
 	var printVersion bool
+	var configFile string
 	var help = `
 CloudflareSpeedTest ` + version + `
 测试各个 CDN 或网站所有 IP 的延迟和速度，获取最快 IP (IPv4+IPv6)！
 https://github.com/XIU2/CloudflareSpeedTest
 
 参数：
+    -c config.yaml
+        指定配置文件；默认使用当前目录下的 config.yaml，不存在时自动创建；(默认 config.yaml)
     -n 200
         延迟测速线程；越多延迟测速越快，性能弱的设备 (如路由器) 请勿太高；(默认 200 最多 1000)
     -t 4
@@ -75,37 +79,73 @@ https://github.com/XIU2/CloudflareSpeedTest
         打印程序版本 + 检查版本更新
     -h
         打印帮助说明
+
+注意：命令行参数优先级高于配置文件，可以覆盖配置文件中的设置
 `
 	var minDelay, maxDelay, downloadTime int
 	var maxLossRate float64
-	flag.IntVar(&task.Routines, "n", 200, "延迟测速线程")
-	flag.IntVar(&task.PingTimes, "t", 4, "延迟测速次数")
-	flag.IntVar(&task.TestCount, "dn", 10, "下载测速数量")
-	flag.IntVar(&downloadTime, "dt", 10, "下载测速时间")
-	flag.IntVar(&task.TCPPort, "tp", 443, "指定测速端口")
-	flag.StringVar(&task.URL, "url", "https://cf.xiu2.xyz/url", "指定测速地址")
 
-	flag.BoolVar(&task.Httping, "httping", false, "切换测速模式")
-	flag.IntVar(&task.HttpingStatusCode, "httping-code", 0, "有效状态代码")
-	flag.StringVar(&task.HttpingCFColo, "cfcolo", "", "匹配指定地区")
-
-	flag.IntVar(&maxDelay, "tl", 9999, "平均延迟上限")
-	flag.IntVar(&minDelay, "tll", 0, "平均延迟下限")
-	flag.Float64Var(&maxLossRate, "tlr", 1, "丢包几率上限")
-	flag.Float64Var(&task.MinSpeed, "sl", 0, "下载速度下限")
-
-	flag.IntVar(&utils.PrintNum, "p", 10, "显示结果数量")
-	flag.StringVar(&task.IPFile, "f", "ip.txt", "IP段数据文件")
-	flag.StringVar(&task.IPText, "ip", "", "指定IP段数据")
-	flag.StringVar(&utils.Output, "o", "result.csv", "输出结果文件")
-
-	flag.BoolVar(&task.Disable, "dd", false, "禁用下载测速")
-	flag.BoolVar(&task.TestAll, "allip", false, "测速全部 IP")
-
-	flag.BoolVar(&utils.Debug, "debug", false, "调试输出模式")
-
+	// 添加配置文件参数
+	flag.StringVar(&configFile, "c", "config.yaml", "配置文件路径")
 	flag.BoolVar(&printVersion, "v", false, "打印程序版本")
+
+	// 先解析 -c 和 -v 参数
+	flag.Parse()
+
+	// 加载配置文件（先设置默认值）
+	config := loadConfigFile(configFile)
+
+	// 用配置文件的值初始化变量
+	task.Routines = config.Routines
+	task.PingTimes = config.PingTimes
+	task.TestCount = config.TestCount
+	downloadTime = config.DownloadTime
+	task.TCPPort = config.TCPPort
+	task.URL = config.URL
+	task.Httping = config.Httping
+	task.HttpingStatusCode = config.HttpingCode
+	task.HttpingCFColo = config.HttpingCFColo
+	maxDelay = config.MaxDelay
+	minDelay = config.MinDelay
+	maxLossRate = config.MaxLossRate
+	task.MinSpeed = config.MinSpeed
+	utils.PrintNum = config.PrintNum
+	task.IPFile = config.IPFile
+	task.IPText = config.IPText
+	utils.Output = config.Output
+	task.Disable = config.DisableDownload
+	task.TestAll = config.TestAll
+	utils.Debug = config.Debug
+
+	// 重新定义命令行参数（用于覆盖配置文件）
+	flag.IntVar(&task.Routines, "n", task.Routines, "延迟测速线程")
+	flag.IntVar(&task.PingTimes, "t", task.PingTimes, "延迟测速次数")
+	flag.IntVar(&task.TestCount, "dn", task.TestCount, "下载测速数量")
+	flag.IntVar(&downloadTime, "dt", downloadTime, "下载测速时间")
+	flag.IntVar(&task.TCPPort, "tp", task.TCPPort, "指定测速端口")
+	flag.StringVar(&task.URL, "url", task.URL, "指定测速地址")
+
+	flag.BoolVar(&task.Httping, "httping", task.Httping, "切换测速模式")
+	flag.IntVar(&task.HttpingStatusCode, "httping-code", task.HttpingStatusCode, "有效状态代码")
+	flag.StringVar(&task.HttpingCFColo, "cfcolo", task.HttpingCFColo, "匹配指定地区")
+
+	flag.IntVar(&maxDelay, "tl", maxDelay, "平均延迟上限")
+	flag.IntVar(&minDelay, "tll", minDelay, "平均延迟下限")
+	flag.Float64Var(&maxLossRate, "tlr", maxLossRate, "丢包几率上限")
+	flag.Float64Var(&task.MinSpeed, "sl", task.MinSpeed, "下载速度下限")
+
+	flag.IntVar(&utils.PrintNum, "p", utils.PrintNum, "显示结果数量")
+	flag.StringVar(&task.IPFile, "f", task.IPFile, "IP段数据文件")
+	flag.StringVar(&task.IPText, "ip", task.IPText, "指定IP段数据")
+	flag.StringVar(&utils.Output, "o", utils.Output, "输出结果文件")
+
+	flag.BoolVar(&task.Disable, "dd", task.Disable, "禁用下载测速")
+	flag.BoolVar(&task.TestAll, "allip", task.TestAll, "测速全部 IP")
+
+	flag.BoolVar(&utils.Debug, "debug", utils.Debug, "调试输出模式")
+
 	flag.Usage = func() { fmt.Print(help) }
+	// 再次解析以应用命令行参数覆盖
 	flag.Parse()
 
 	if task.MinSpeed > 0 && time.Duration(maxDelay)*time.Millisecond == utils.InputMaxDelay {
@@ -130,6 +170,29 @@ https://github.com/XIU2/CloudflareSpeedTest
 	}
 }
 
+// loadConfigFile 加载配置文件，如果不存在则创建默认配置文件
+func loadConfigFile(filename string) *config.Config {
+	// 检查配置文件是否存在
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		// 配置文件不存在，创建默认配置文件
+		fmt.Printf("配置文件 %s 不存在，正在创建默认配置文件...\n", filename)
+		if err := config.CreateDefaultConfigFile(filename); err != nil {
+			fmt.Printf("创建配置文件失败: %v\n使用默认配置继续运行...\n", err)
+			return config.DefaultConfig()
+		}
+		fmt.Printf("已创建默认配置文件: %s\n", filename)
+	}
+
+	// 加载配置文件
+	yamlConfig, err := config.LoadConfig(filename)
+	if err != nil {
+		fmt.Printf("加载配置文件失败: %v\n使用默认配置继续运行...\n", err)
+		return config.DefaultConfig()
+	}
+
+	return yamlConfig
+}
+
 func main() {
 	task.InitRandSeed() // 置随机数种子
 
@@ -137,8 +200,10 @@ func main() {
 
 	// 开始延迟测速 + 过滤延迟/丢包
 	pingData := task.NewPing().Run().FilterDelay().FilterLossRate()
+	print("ok")
 	// 开始下载测速
 	speedData := task.TestDownloadSpeed(pingData)
+	print("ok")
 	utils.ExportCsv(speedData) // 输出文件
 	speedData.Print()          // 打印结果
 	endPrint()                 // 根据情况选择退出方式（针对 Windows）

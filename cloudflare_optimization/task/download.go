@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/XIU2/CloudflareSpeedTest/utils"
+	"cf_opt/utils"
 
 	"github.com/VividCortex/ewma"
 )
