@@ -27,10 +27,8 @@ HostBoost 通过智能优选 CDN(如 Cloudflare)的 IP 地址并动态修改系�
 
 - ✅ **自动识别** - 智能检测使用 Cloudflare CDN 的网站
 - ✅ **透明加速** - 无感知提速,不改变用户使用习惯
-- ✅ **实时优化** - 每 10 分钟自动优选最佳 IP
+- ✅ **实时优化** - 定时优选最佳 IP
 - ✅ **跨平台支持** - 支持 Windows、macOS、Linux
-- ✅ **安全可靠** - 本地化处理,保护用户隐私
-- ✅ **开源免费** - MIT 协议,完全开源
 
 ## 🏗️ 系统架构
 
@@ -56,45 +54,10 @@ flowchart LR
     style Browser fill:#f0f0f0
 ```
 
-```mermaid
-flowchart TB
-    subgraph Browser["用户浏览器"]
-        Extension["Chrome 扩展<br/>(智能识别加速域名)"]
-    end
-    
-    subgraph HostMgr["Host Manager Service<br/>(核心服务 - 必需)"]
-        API["API 接口"]
-        HostFile["Hosts 文件管理"]
-        DNS["DNS 缓存刷新"]
-        Mapping["域名-IP 映射表"]
-    end
-    
-    subgraph CFOpt["CF Optimization Service<br/>(IP 优选 - 可选)"]
-        Timer["定时器<br/>(每10分钟)"]
-        Tester["IP 测速引擎"]
-        Selector["最优 IP 筛选"]
-        Reporter["IP 上报"]
-    end
-    
-    Extension -->|"1. 发送加速请求<br/>(HTTP/WebSocket)"| API
-    API --> HostFile
-    API --> DNS
-    API --> Mapping
-    
-    Timer --> Tester
-    Tester --> Selector
-    Selector --> Reporter
-    Reporter -->|"2. 主动推送优选 IP<br/>(HTTP API)"| API
-    
-    style HostMgr fill:#e1f5ff
-    style CFOpt fill:#fff4e1
-    style Browser fill:#f0f0f0
-```
-
 **架构特点**:
 
 - Host Manager 是核心服务,可独立运行
-- CF Optimizer 是可选服务,主动推送最优 IP
+- CF Optimizer 主动推送最优 IP
 - Chrome 扩展提供用户交互界面
 
 ## 🚀 快速开始
@@ -123,7 +86,7 @@ pnpm build
 ```bash
 cd host_manager
 go mod tidy
-go run main.go
+sudo go run main.go
 ```
 
 3. 运行 Cloudflare 优选器
@@ -136,9 +99,9 @@ go run main.go
 
 ### 使用方法
 
-1. 启动所有服务后,Chrome 扩展图标会变为可用状态
-2. 访问任何网站,扩展会自动检测是否可以加速
-3. 系统会自动优化并保持最佳性能
+1. 启动所有服务后,进入需要提速的网站在拓展里开启加速
+2. 刷新浏览器dns缓存
+
 
 ## 📦 项目结构
 
@@ -186,7 +149,7 @@ sequenceDiagram
 1. **识别**: Chrome 扩展检测 Cloudflare CDN 网站
 2. **请求**: 发送加速请求到 Host Manager
 3. **配置**: 修改 Hosts 文件并刷新 DNS 缓存
-4. **优化(可选)**: CF Optimizer 主动推送最优 IP
+4. **优化**: CF Optimizer 主动推送最优 IP
 
 ## 🛣️ 路线图
 
@@ -197,11 +160,11 @@ sequenceDiagram
 - [x] Chrome 扩展开发
 - [x] Host Manager 核心功能
 - [x] CloudflareSpeedTest 改造
+- [x] action 发布
 
 ### 下个版本 (v1.x)
-
+- [ ] 刷新浏览器dns缓存
 - [ ] 安全防护
-- [ ] action 发布
 - [ ] cdn检测
 - [ ] 优化使用
 
@@ -224,7 +187,7 @@ A: 不会。仅对配置的域名生效,不影响其他网站。
 
 ### Q3: 如何关闭加速?
 
-A: 在 Chrome 扩展中点击禁用,或停止 Host Manager 服务。
+A: 删除host增加的内容或者删除 `hosts.json` 的内容然后重启MGR。
 
 ### Q4: 支持哪些网站?
 
