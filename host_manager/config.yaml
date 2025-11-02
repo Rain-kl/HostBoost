@@ -9,6 +9,8 @@ server:
 data:
   # hosts 数据文件路径
   host_file: "hosts.json"
+  # 优选 IP 数据文件路径
+  opt_file: "opts.json"
 
 # CORS 跨域配置
 cors:

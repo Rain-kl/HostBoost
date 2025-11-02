@@ -23,6 +23,7 @@ type ServerConfig struct {
 // DataConfig 数据存储相关配置
 type DataConfig struct {
 	HostFile string `yaml:"host_file"`
+	OptFile  string `yaml:"opt_file"`
 }
 
 // CORSConfig CORS 相关配置
@@ -43,6 +44,7 @@ func DefaultConfig() *Config {
 		},
 		Data: DataConfig{
 			HostFile: "hosts.json",
+			OptFile:  "opts.json",
 		},
 		CORS: CORSConfig{
 			AllowOrigins:     []string{"*"},

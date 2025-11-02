@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"hostMgr/internal/host"
+	"hostMgr/internal/opt"
 	"hostMgr/internal/server"
 )
 
@@ -54,14 +55,25 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
-	// 初始化 repository
+	// 初始化 host repository
 	repo, err := host.NewFileRepository(cfg.Data.HostFile)
 	if err != nil {
 		log.Fatalf("init repository: %v", err)
 	}
 
+	// 初始化 host service
 	svc := host.NewService(repo)
-	handler := server.NewHandler(svc)
+
+	// 初始化 opt repository
+	optRepo, err := opt.NewRepository(cfg.Data.OptFile)
+	if err != nil {
+		log.Fatalf("init opt repository: %v", err)
+	}
+
+	// 初始化 opt service
+	optSvc := opt.NewService(optRepo)
+
+	handler := server.NewHandler(svc, optSvc)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware(cfg))
@@ -69,6 +81,7 @@ func main() {
 
 	port := cfg.Server.NormalizePort()
 	log.Printf("Host service listening on %s using data file %s", port, cfg.Data.HostFile)
+	log.Printf("Opt service using data file %s", cfg.Data.OptFile)
 	log.Printf("Config file: %s", configPath)
 	if err := router.Run(port); err != nil {
 		log.Fatalf("server error: %v", err)
