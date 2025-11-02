@@ -65,7 +65,7 @@ func resolvePort(flagValue string) string {
 }
 
 func resolveHostFile(flagValue string) string {
-	defaultFile := "data/hosts.json"
+	defaultFile := "hosts.json"
 
 	if file := os.Getenv("HOSTBOOST_DATA_FILE"); file != "" {
 		return file
