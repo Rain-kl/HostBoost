@@ -117,7 +117,7 @@ const isBoostSupported = ref(true); // 是否支持加速，默认为true
 const isBackendError = ref(false); // 后端服务错误状态
 const isOptimizing = ref(false);
 const countdown = ref(3);
-const currentTabId = ref(null); // 当前标签页ID
+const currentTabId = ref(undefined); // 当前标签页ID
 
 const detectStatus = ref({
   icon: "🔍",
