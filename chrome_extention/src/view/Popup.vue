@@ -23,9 +23,10 @@
             class="shield-button"
             :class="{
               'shield-active': isBoostEnabled,
-              'shield-disabled': !isBoostSupported,
+              'shield-disabled': !isBoostSupported && !isBackendError,
+              'shield-warning': isBackendError,
             }"
-            :disabled="!isBoostSupported || isDetecting"
+            :disabled="isDetecting"
             @click="toggleBoost"
           >
             <svg
@@ -112,19 +113,20 @@ import { hostApi } from "@/api/api-ref.js";
 const domain = ref("");
 const isDetecting = ref(true);
 const isBoostEnabled = ref(false);
-const isBoostSupported = ref(false); // 是否支持加速
+const isBoostSupported = ref(true); // 是否支持加速，默认为true
+const isBackendError = ref(false); // 后端服务错误状态
 const isOptimizing = ref(false);
 const countdown = ref(3);
+const currentTabId = ref(undefined); // 当前标签页ID
 
-// Mock 数据
 const detectStatus = ref({
   icon: "🔍",
   text: "正在识别...",
 });
 
 const optimizedNode = ref({
-  ip: "104.16.132.229",
-  rtt: 42,
+  ip: "",
+  rtt: 0,
 });
 
 // 计算延迟百分比和颜色
@@ -141,6 +143,13 @@ const latencyClass = computed(() => {
   return "latency-poor";
 });
 
+// 检测域名是否支持CDN加速（预留接口，当前版本返回true）
+const checkCdnSupport = (domain) => {
+  // TODO: 后续版本实现真实的CDN检测逻辑
+  // 可以检测域名是否使用Cloudflare、Akamai等CDN服务
+  return true;
+};
+
 // API 调用 - 检查域名状态
 const getHost = async (domain) => {
   try {
@@ -148,10 +157,13 @@ const getHost = async (domain) => {
     const response = await hostApi.hostGet(domain);
 
     isDetecting.value = false;
+    isBackendError.value = false; // 能收到响应，清除后端错误状态
+
+    // 检测域名是否支持加速
+    isBoostSupported.value = checkCdnSupport(domain);
 
     // 如果查询成功(code === 200)，说明已有加速记录，直接开启加速
     if (response.data.code === 200 && response.data.data) {
-      isBoostSupported.value = true;
       isBoostEnabled.value = true;
 
       detectStatus.value = {
@@ -163,45 +175,64 @@ const getHost = async (domain) => {
       if (response.data.data.ip) {
         optimizedNode.value = {
           ip: response.data.data.ip,
-          rtt: 0, // API 响应中没有 rtt 字段，设为 0 或稍后测量
+          rtt: 0,
         };
       }
     } else {
-      // 查询失败或无记录，需要进行 CDN 检查
-      // 模拟识别结果 (70%概率支持加速)
-      const isCDN = Math.random() > 0.3;
-      isBoostSupported.value = isCDN;
+      // 查询失败或无记录（但服务端有响应）
+      isBoostEnabled.value = false;
 
-      detectStatus.value = isCDN
-        ? { icon: "🌐", text: "已识别为 Cloudflare 节点" }
-        : { icon: "🔍", text: "非可加速网站" };
-
-      // 如果不支持加速，自动关闭加速状态
-      if (!isCDN) {
-        isBoostEnabled.value = false;
-      }
+      detectStatus.value = {
+        icon: "🌐",
+        text: "可加速网站",
+      };
     }
   } catch (error) {
     console.error("查询域名状态失败:", error);
     isDetecting.value = false;
 
-    // API 调用失败，降级到 CDN 检查
-    const isCDN = Math.random() > 0.3;
-    isBoostSupported.value = isCDN;
+    // 检测域名是否支持加速
+    isBoostSupported.value = checkCdnSupport(domain);
 
-    detectStatus.value = isCDN
-      ? { icon: "🌐", text: "已识别为 Cloudflare 节点" }
-      : { icon: "🔍", text: "非可加速网站" };
-
-    if (!isCDN) {
+    // 只有在网络错误（无法连接、超时等）时才设置后端错误状态
+    // 如果error.response存在，说明服务端有响应，不是网络问题
+    if (!error.response) {
+      // 网络错误：ERR_CONNECTION_REFUSED, ECONNREFUSED, timeout等
+      isBackendError.value = true;
       isBoostEnabled.value = false;
+
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "后端服务未启动",
+      };
+    } else {
+      // 服务端有响应但返回错误（如404, 500等）
+      isBackendError.value = false;
+      isBoostEnabled.value = false;
+
+      detectStatus.value = {
+        icon: "❌",
+        text: `服务错误: ${error.response.status}`,
+      };
     }
   }
 };
 
 // 切换加速状态
 const toggleBoost = async () => {
-  if (!isBoostSupported.value || isDetecting.value) {
+  if (isDetecting.value) {
+    return;
+  }
+
+  // 如果是后端错误状态，点击后重新检查后端状态
+  if (isBackendError.value) {
+    isDetecting.value = true;
+    isBackendError.value = false;
+    await getHost(domain.value);
+    return;
+  }
+
+  if (!isBoostSupported.value) {
     return;
   }
 
@@ -216,6 +247,7 @@ const toggleBoost = async () => {
 
       if (response.data.code === 200) {
         isBoostEnabled.value = true;
+        isBackendError.value = false; // 清除后端错误状态
         console.log("加速已开启:", response.data);
 
         // 再次调用 hostGet 获取完整的 CDN IP 等信息
@@ -244,7 +276,17 @@ const toggleBoost = async () => {
             };
           }
         }
+
+        // 等待1秒后重载当前网页，刷新DNS缓存
+        setTimeout(() => {
+          if (currentTabId.value) {
+            chrome.tabs.reload(currentTabId.value, { bypassCache: true });
+            console.log("已重载当前网页，刷新DNS缓存");
+          }
+        }, 1000);
       } else {
+        // 服务端有响应但返回错误
+        isBackendError.value = false;
         console.error("开启加速失败:", response.data.message);
       }
     } else {
@@ -253,15 +295,33 @@ const toggleBoost = async () => {
 
       if (response.data.code === 200) {
         isBoostEnabled.value = false;
+        isBackendError.value = false; // 清除后端错误状态
         console.log("加速已关闭:", response.data);
       } else {
+        // 服务端有响应但返回错误
+        isBackendError.value = false;
         console.error("关闭加速失败:", response.data.message);
       }
     }
   } catch (error) {
     console.error("切换加速状态失败:", error);
-    // 即使 API 调用失败，也允许本地切换状态（降级处理）
-    isBoostEnabled.value = !isBoostEnabled.value;
+
+    // 只有在网络错误时才设置后端错误状态
+    if (!error.response) {
+      isBackendError.value = true;
+      isBoostEnabled.value = false;
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "后端服务未启动",
+      };
+    } else {
+      // 服务端有响应但返回错误
+      isBackendError.value = false;
+      detectStatus.value = {
+        icon: "❌",
+        text: `操作失败: ${error.response.status}`,
+      };
+    }
   }
 };
 
@@ -269,6 +329,9 @@ const toggleBoost = async () => {
 const getShieldStatusText = () => {
   if (isDetecting.value) {
     return "正在识别...";
+  }
+  if (isBackendError.value) {
+    return "点击重新检查后端服务";
   }
   if (!isBoostSupported.value) {
     return "该网站不支持加速";
@@ -283,20 +346,47 @@ const reoptimize = async () => {
   isOptimizing.value = true;
   countdown.value = 3;
 
-  const timer = setInterval(() => {
-    countdown.value--;
-    if (countdown.value <= 0) {
-      clearInterval(timer);
-      // Mock 优选结果
+  try {
+    // 重新调用 hostPost 和 hostGet 获取最新的优化节点
+    const hostData = {
+      domain: domain.value,
+    };
+
+    await hostApi.hostPost(hostData);
+    const response = await hostApi.hostGet(domain.value);
+
+    if (
+      response.data.code === 200 &&
+      response.data.data &&
+      response.data.data.ip
+    ) {
       optimizedNode.value = {
-        ip: `104.16.${Math.floor(Math.random() * 255)}.${Math.floor(
-          Math.random() * 255
-        )}`,
-        rtt: Math.floor(Math.random() * 150) + 20,
+        ip: response.data.data.ip,
+        rtt: 0,
       };
-      isOptimizing.value = false;
+      isBackendError.value = false; // 清除后端错误状态
     }
-  }, 1000);
+  } catch (error) {
+    console.error("重新优选失败:", error);
+
+    // 只有在网络错误时才设置后端错误状态
+    if (!error.response) {
+      isBackendError.value = true;
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "后端服务未启动",
+      };
+    } else {
+      // 服务端有响应但返回错误
+      isBackendError.value = false;
+      detectStatus.value = {
+        icon: "❌",
+        text: `重新优选失败: ${error.response.status}`,
+      };
+    }
+  } finally {
+    isOptimizing.value = false;
+  }
 };
 
 // 粒子动画样式
@@ -321,6 +411,7 @@ onMounted(() => {
     if (tab?.url) {
       try {
         domain.value = new URL(tab.url).hostname;
+        currentTabId.value = tab.id; // 保存当前标签页ID
       } catch {
         domain.value = "无法解析域名";
       }
@@ -670,6 +761,37 @@ watch(domain, (newVal) => {
 .shield-button:disabled:hover {
   transform: none;
   box-shadow: none;
+}
+
+.shield-button.shield-warning {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.15) 0%,
+    rgba(217, 119, 6, 0.1) 100%
+  );
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.shield-button.shield-warning::after {
+  display: block;
+  background: radial-gradient(
+    circle,
+    rgba(245, 158, 11, 0.25) 0%,
+    transparent 70%
+  );
+}
+
+.shield-button.shield-warning:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.shield-button.shield-warning:hover::after {
+  opacity: 1;
 }
 
 .shield-icon {
