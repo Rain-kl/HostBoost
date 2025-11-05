@@ -14,7 +14,29 @@
 
 
 
-export * from './apis/host-api';
-export * from './apis/opt-api';
-export * from './apis/tool-api';
+/**
+ * 
+ * @export
+ * @interface DomainDetail
+ */
+export interface DomainDetail {
+    /**
+     * 
+     * @type {string}
+     * @memberof DomainDetail
+     */
+    'organization': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DomainDetail
+     */
+    'ip': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DomainDetail
+     */
+    'isp': string;
+}
 

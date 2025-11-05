@@ -17,6 +17,12 @@
       <div class="card boost-card">
         <h3 class="card-title">加速状态</h3>
 
+        <!-- 检测状态显示 -->
+        <div class="detect-status">
+          <span class="status-icon">{{ detectStatus.icon }}</span>
+          <span class="status-text">{{ detectStatus.text }}</span>
+        </div>
+
         <!-- 盾牌控制 -->
         <div class="shield-container">
           <button
@@ -107,7 +113,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
-import { hostApi } from "@/api/api-ref.js";
+import { hostApi, toolApi } from "@/api/api-ref.js";
 
 // 状态管理
 const domain = ref("");
@@ -144,32 +150,77 @@ const latencyClass = computed(() => {
 });
 
 // 检测域名是否支持CDN加速（预留接口，当前版本返回true）
-const checkCdnSupport = (domain) => {
-  // TODO: 后续版本实现真实的CDN检测逻辑
-  // 可以检测域名是否使用Cloudflare、Akamai等CDN服务
-  return true;
+const checkCdnSupport = async (domain) => {
+  try {
+    // 更新状态为检查中
+    detectStatus.value = {
+      icon: "🔍",
+      text: "正在检查 CDN 支持...",
+    };
+
+    const response = await toolApi.toolWebDetailsGet(domain);
+    if (
+      (response.data.code === 200 || response.data.code === "200") &&
+      response.data.data
+    ) {
+      if (
+        response.data.data.organization.trim().toLowerCase() === "cloudflare"
+      ) {
+        detectStatus.value = {
+          icon: "🌐",
+          text: "已识别为 Cloudflare 节点",
+        };
+        return true;
+      } else {
+        // 不是 Cloudflare 节点
+        detectStatus.value = {
+          icon: "ℹ️",
+          text: "该网站不支持加速",
+        };
+        return false;
+      }
+    }
+
+    // API 返回数据不正确
+    detectStatus.value = {
+      icon: "ℹ️",
+      text: "该网站不支持加速",
+    };
+    return false;
+  } catch (error) {
+    console.error("检查 CDN 支持失败:", error);
+
+    // 显示错误信息
+    detectStatus.value = {
+      icon: "⚠️",
+      text: `CDN 检查失败: ${error.message || "网络错误"}`,
+    };
+
+    // 如果是网络错误,可能后端服务有问题
+    if (!error.response) {
+      isBackendError.value = true;
+    }
+
+    return false;
+  }
 };
 
 // API 调用 - 检查域名状态
 const getHost = async (domain) => {
   try {
-    // 先调用 hostGet 接口查询状态
+    // 优先调用 hostGet 接口查询状态
     const response = await hostApi.hostGet(domain);
 
-    isDetecting.value = false;
     isBackendError.value = false; // 能收到响应，清除后端错误状态
+    isDetecting.value = false;
 
-    // 检测域名是否支持加速
-    isBoostSupported.value = checkCdnSupport(domain);
-
-    // 如果查询成功(code === 200)，说明已有加速记录，直接开启加速
-    if (response.data.code === 200 && response.data.data) {
+    // 如果查询成功(code === 200 或 code === "200")，说明已有加速记录，直接开启加速
+    if (
+      (response.data.code === 200 || response.data.code === "200") &&
+      response.data.data
+    ) {
       isBoostEnabled.value = true;
-
-      detectStatus.value = {
-        icon: "🌐",
-        text: "已识别为 Cloudflare 节点",
-      };
+      isBoostSupported.value = true; // 已经加速说明肯定支持
 
       // 从 API 响应中获取优化节点信息
       if (response.data.data.ip) {
@@ -178,21 +229,36 @@ const getHost = async (domain) => {
           rtt: 0,
         };
       }
+
+      // 已经加速，不需要再检查 CDN 支持
+      detectStatus.value = {
+        icon: "✅",
+        text: "加速已启用",
+      };
     } else {
-      // 查询失败或无记录（但服务端有响应）
+      // 查询失败或无记录（但服务端有响应），需要检测域名是否支持加速
       isBoostEnabled.value = false;
 
-      detectStatus.value = {
-        icon: "🌐",
-        text: "可加速网站",
-      };
+      // 检测域名是否支持加速
+      isBoostSupported.value = await checkCdnSupport(domain);
+
+      // 根据是否支持加速显示不同的状态
+      if (isBoostSupported.value) {
+        detectStatus.value = {
+          icon: "🌐",
+          text: "可加速网站",
+        };
+      } else {
+        detectStatus.value = {
+          icon: "ℹ️",
+          text: "该网站不支持加速",
+        };
+      }
     }
   } catch (error) {
     console.error("查询域名状态失败:", error);
-    isDetecting.value = false;
 
-    // 检测域名是否支持加速
-    isBoostSupported.value = checkCdnSupport(domain);
+    isDetecting.value = false;
 
     // 只有在网络错误（无法连接、超时等）时才设置后端错误状态
     // 如果error.response存在，说明服务端有响应，不是网络问题
@@ -206,13 +272,19 @@ const getHost = async (domain) => {
         text: "后端服务未启动",
       };
     } else {
-      // 服务端有响应但返回错误（如404, 500等）
+      // 服务端有响应但返回错误（如404, 500等），需要检测域名是否支持加速
       isBackendError.value = false;
       isBoostEnabled.value = false;
 
+      // 检测域名是否支持加速
+      isBoostSupported.value = await checkCdnSupport(domain);
+
+      const errorData = error.response?.data;
+      const errorCode = errorData?.code || error.response.status;
+      const errorMsg = errorData?.message || error.message || "未知错误";
       detectStatus.value = {
         icon: "❌",
-        text: `服务错误: ${error.response.status}`,
+        text: `查询失败 [${errorCode}]: ${errorMsg}`,
       };
     }
   }
@@ -287,7 +359,12 @@ const toggleBoost = async () => {
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
-        console.error("开启加速失败:", response.data.message);
+        const errorMsg = response.data.message || "未知错误";
+        console.error("开启加速失败:", response.data);
+        detectStatus.value = {
+          icon: "❌",
+          text: `开启失败 [${response.data.code}]: ${errorMsg}`,
+        };
       }
     } else {
       // 关闭加速 - 调用 hostDelete
@@ -300,7 +377,12 @@ const toggleBoost = async () => {
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
-        console.error("关闭加速失败:", response.data.message);
+        const errorMsg = response.data.message || "未知错误";
+        console.error("关闭加速失败:", response.data);
+        detectStatus.value = {
+          icon: "❌",
+          text: `关闭失败 [${response.data.code}]: ${errorMsg}`,
+        };
       }
     }
   } catch (error) {
@@ -317,9 +399,12 @@ const toggleBoost = async () => {
     } else {
       // 服务端有响应但返回错误
       isBackendError.value = false;
+      const errorData = error.response?.data;
+      const errorCode = errorData?.code || error.response.status;
+      const errorMsg = errorData?.message || error.message || "未知错误";
       detectStatus.value = {
         icon: "❌",
-        text: `操作失败: ${error.response.status}`,
+        text: `操作失败 [${errorCode}]: ${errorMsg}`,
       };
     }
   }
@@ -639,7 +724,7 @@ watch(domain, (newVal) => {
 
 .detect-status {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 8px 12px;
   background: rgba(102, 126, 234, 0.05);
@@ -649,12 +734,17 @@ watch(domain, (newVal) => {
 
 .status-icon {
   font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .status-text {
   font-size: 14px;
   color: #4b5563;
   font-weight: 500;
+  word-break: break-word;
+  line-height: 1.5;
+  flex: 1;
 }
 
 /* 加速状态卡片 */
