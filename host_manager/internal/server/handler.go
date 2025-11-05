@@ -5,19 +5,22 @@ import (
 
 	"hostMgr/internal/host"
 	"hostMgr/internal/opt"
+	"hostMgr/internal/tool"
 )
 
 // Handler bundles HTTP handlers for host and opt operations.
 type Handler struct {
-	svc    *host.Service
-	optSvc *opt.Service
+	svc     *host.Service
+	optSvc  *opt.Service
+	toolSvc *tool.ToolService
 }
 
 // NewHandler creates a Gin handler with the provided services.
-func NewHandler(svc *host.Service, optSvc *opt.Service) *Handler {
+func NewHandler(svc *host.Service, optSvc *opt.Service, toolSvc *tool.ToolService) *Handler {
 	return &Handler{
-		svc:    svc,
-		optSvc: optSvc,
+		svc:     svc,
+		optSvc:  optSvc,
+		toolSvc: toolSvc,
 	}
 }
 
@@ -33,6 +36,9 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	r.POST("/opt/report", h.reportOpt)
 	r.GET("/opt", h.getCurrentOpt)
 	r.GET("/opt/change", h.changeOpt)
+
+	// tool 相关路由
+	r.GET("/tool/webDetails", h.getWebDetails)
 }
 
 // respondError 通用错误响应函数

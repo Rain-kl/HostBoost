@@ -14,6 +14,7 @@ import (
 	"hostMgr/internal/host"
 	"hostMgr/internal/opt"
 	"hostMgr/internal/server"
+	"hostMgr/internal/tool"
 )
 
 const (
@@ -76,7 +77,10 @@ func main() {
 	optSvc := opt.NewService(optRepo)
 	extSvc.OptService = optSvc
 
-	handler := server.NewHandler(hostSvc, optSvc)
+	// 初始化 tool service
+	toolSvc := tool.NewToolService()
+
+	handler := server.NewHandler(hostSvc, optSvc, toolSvc)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware(cfg))
@@ -85,6 +89,7 @@ func main() {
 	port := cfg.Server.NormalizePort()
 	log.Printf("Host service listening on %s using data file %s", port, cfg.Data.HostFile)
 	log.Printf("Opt service using data file %s", cfg.Data.OptFile)
+	log.Printf("Tool service initialized with DNS resolver and IP geolocation service")
 	log.Printf("Config file: %s", configPath)
 	if err := router.Run(port); err != nil {
 		log.Fatalf("server error: %v", err)
