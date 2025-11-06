@@ -1,4 +1,6 @@
 export * from './base-response';
+export * from './detail-response';
+export * from './domain-detail';
 export * from './host-post-request';
 export * from './host-vo';
 export * from './opt-request';

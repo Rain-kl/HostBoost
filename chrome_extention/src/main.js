@@ -1,5 +1,9 @@
 import {createApp} from "vue";
-import Popup from "./APP.vue";
+import App from "./APP.vue";
 import "./index.css"
 
-createApp(Popup).mount("#app");
+import "@varlet/ui/es/style";
+import Varlet from '@varlet/ui'
+
+createApp(App).use(Varlet).mount("#app");
+

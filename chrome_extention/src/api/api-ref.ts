@@ -3,7 +3,7 @@
  * 展示如何使用 OpenAPI Generator 生成的 API 代码
  */
 
-import { Configuration, HostApi, OptApi } from './index';
+import { Configuration, HostApi, OptApi, ToolApi } from './index';
 import type { HostPostRequest, OptRequest } from './models';
 
 // ============================================
@@ -25,6 +25,7 @@ const config = new Configuration({
 // 创建 API 实例
 const hostApi = new HostApi(config);
 const optApi = new OptApi(config);
+const toolApi = new ToolApi(config);
 
 // ============================================
 // 2. HostApi 使用示例
@@ -236,7 +237,7 @@ export async function batchAddHosts(domains: string[]) {
 // 5. 导出配置好的 API 实例供全局使用
 // ============================================
 
-export { hostApi, optApi, config };
+export { hostApi, optApi, config,toolApi };
 
 // 如果需要重新配置 API (例如切换环境)
 export function reconfigureApi(newBasePath: string) {
