@@ -77,6 +77,7 @@ func (s *Service) CreateHost(req AddHostRequest) error {
 	// 同步到系统 hosts 文件
 	if err := s.syncer.Sync(); err != nil {
 		log.Printf("Warning: failed to sync hosts to system: %v", err)
+		return err
 	}
 
 	return nil

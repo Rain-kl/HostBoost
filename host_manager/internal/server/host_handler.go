@@ -14,7 +14,7 @@ func (h *Handler) getHost(c *gin.Context) {
 	domain := c.Query("domain")
 	hostEntry, err := h.svc.GetHost(domain)
 	if err != nil {
-		respondError(c, http.StatusBadRequest, err)
+		respondError(c, http.StatusNoContent, err)
 		return
 	}
 
