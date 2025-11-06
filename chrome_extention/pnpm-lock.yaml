@@ -11,6 +11,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.16
         version: 4.1.16(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.2))
+      '@varlet/ui':
+        specifier: ^3.12.1
+        version: 3.12.1(vue@3.5.22(typescript@5.9.3))
       axios:
         specifier: ^1.13.1
         version: 1.13.1
@@ -240,6 +243,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@popperjs/core@2.11.8':
+    resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
+
   '@rolldown/pluginutils@1.0.0-beta.29':
     resolution: {integrity: sha512-NIJgOsMjbxAXvoGq/X0gD7VPMQ8j9g0BiDaNjVNVjvl+iKXxL3Jre0v31RmBYeLEmkbj2s02v8vFTbUXi5XS2Q==}
 
@@ -461,6 +467,22 @@ packages:
   '@types/node@24.9.2':
     resolution: {integrity: sha512-uWN8YqxXxqFMX2RqGOrumsKeti4LlmIMIyV0lgut4jx7KQBcBiW6vkDtIBvHnHIquwNfJhk8v2OtmO8zXWHfPA==}
 
+  '@varlet/icons@3.12.1':
+    resolution: {integrity: sha512-RYq+/W1lvvuO5F6b2iIbm/zwQQXWEtStYU8idE5OY7JfauNnzrzhi1tPgRYqPjU/h0+um3CaJxLKVXoRCQuVzg==}
+
+  '@varlet/shared@3.12.1':
+    resolution: {integrity: sha512-12k3zOsq0cOUEgdGjh6Leu7c8EmZmnDFgsIIUp5TQ6hMKwmCbMvz1TP5Wn4otirwiAO4aWwu3X2YWoJF28BVYw==}
+
+  '@varlet/ui@3.12.1':
+    resolution: {integrity: sha512-rQkbWLba2TQruAJJgcDFQ+i9c+cX8JrRJ1wvKzrCo28a6VShSWxui19oUa5IIGo1w259/9SXM2IvcFNKq4iwsQ==}
+    peerDependencies:
+      vue: ^3.2.0
+
+  '@varlet/use@3.12.1':
+    resolution: {integrity: sha512-Py3AOJnXi11eLnnmOJEf+bKc2CJfmoZGUidhDpRfznlpBRQ8cjtMADUmE5rAwxuR0q5+kTxUxYzil/xdtamBDg==}
+    peerDependencies:
+      vue: ^3.2.0
+
   '@vitejs/plugin-vue@6.0.1':
     resolution: {integrity: sha512-+MaE752hU0wfPFJEUAIxqw18+20euHHdxVtMvbFcOEpjEyfqXH/5DCoTHiVJ0J29EhTJdoTkjEv5YBKU9dnoTw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -544,6 +566,12 @@ packages:
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+
+  dayjs@1.11.19:
+    resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
+
+  decimal.js@10.6.0:
+    resolution: {integrity: sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==}
 
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
@@ -735,6 +763,9 @@ packages:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
 
+  mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
+
   muggle-string@0.4.1:
     resolution: {integrity: sha512-VNTrAak/KhO2i8dqqnqnAHOa3cYBwXEZe9h+D5h/1ZqFSTEFHdM65lR7RoIqq3tBBYavsOXV84NoHXZ0AkPyqQ==}
 
@@ -759,6 +790,10 @@ packages:
 
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+
+  rattail@1.0.17:
+    resolution: {integrity: sha512-EO9spS6qjW/y/5rKBcNkXka1e4udhOqiuUigmPd6aJZOwclkGhDGx9HnUHCz3R8Is8FqXdsqgiSOhV5/r4ynCA==}
+    engines: {pnpm: '>=9.0'}
 
   rollup@4.52.5:
     resolution: {integrity: sha512-3GuObel8h7Kqdjt0gxkEzaifHTqLVW56Y/bjN7PSQtkKr0w3V/QYSdt6QWYtd7A1xUtYQigtdUfgj1RvWVtorw==}
@@ -963,6 +998,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@popperjs/core@2.11.8': {}
+
   '@rolldown/pluginutils@1.0.0-beta.29': {}
 
   '@rollup/rollup-android-arm-eabi@4.52.5':
@@ -1118,6 +1155,27 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@varlet/icons@3.12.1': {}
+
+  '@varlet/shared@3.12.1':
+    dependencies:
+      rattail: 1.0.17
+
+  '@varlet/ui@3.12.1(vue@3.5.22(typescript@5.9.3))':
+    dependencies:
+      '@popperjs/core': 2.11.8
+      '@varlet/icons': 3.12.1
+      '@varlet/shared': 3.12.1
+      '@varlet/use': 3.12.1(vue@3.5.22(typescript@5.9.3))
+      dayjs: 1.11.19
+      decimal.js: 10.6.0
+      vue: 3.5.22(typescript@5.9.3)
+
+  '@varlet/use@3.12.1(vue@3.5.22(typescript@5.9.3))':
+    dependencies:
+      '@varlet/shared': 3.12.1
+      vue: 3.5.22(typescript@5.9.3)
+
   '@vitejs/plugin-vue@6.0.1(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.2))(vue@3.5.22(typescript@5.9.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-beta.29
@@ -1229,6 +1287,10 @@ snapshots:
       delayed-stream: 1.0.0
 
   csstype@3.1.3: {}
+
+  dayjs@1.11.19: {}
+
+  decimal.js@10.6.0: {}
 
   delayed-stream@1.0.0: {}
 
@@ -1407,6 +1469,8 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
+  mitt@3.0.1: {}
+
   muggle-string@0.4.1: {}
 
   nanoid@3.3.11: {}
@@ -1424,6 +1488,10 @@ snapshots:
       source-map-js: 1.2.1
 
   proxy-from-env@1.1.0: {}
+
+  rattail@1.0.17:
+    dependencies:
+      mitt: 3.0.1
 
   rollup@4.52.5:
     dependencies:
