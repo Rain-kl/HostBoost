@@ -78,7 +78,7 @@
         <div v-if="isBoostEnabled" class="info-card">
           <div class="info-header">
             <span class="info-title">CDN 节点</span>
-            <span class="status-badge">已连接</span>
+            <span class="status-badge">已解析</span>
           </div>
           <div class="info-row">
             <span class="info-label">优选 IP</span>
@@ -923,6 +923,11 @@ const webDetailsDisplay = computed(() => {
 }
 
 .toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   color: #86868b;
   transition: all 0.3s ease;
 }
