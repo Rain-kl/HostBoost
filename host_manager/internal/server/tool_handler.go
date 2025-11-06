@@ -12,6 +12,7 @@ import (
 // getWebDetails 获取指定域名的详细信息
 // 1. 解析域名获取 IP 地址
 // 2. 查询第一个 IP 的地理位置信息
+// 使用缓存机制，避免重复查询相同域名
 func (h *Handler) getWebDetails(c *gin.Context) {
 	domain := c.Query("domain")
 
@@ -23,6 +24,19 @@ func (h *Handler) getWebDetails(c *gin.Context) {
 			Data:    nil,
 		})
 		return
+	}
+
+	// 尝试从缓存中获取数据
+	cacheKey := fmt.Sprintf("webdetails:%s", domain)
+	if cachedData, found := h.cache.Get(cacheKey); found {
+		if data, ok := cachedData.(*tool.DomainDetail); ok {
+			c.JSON(http.StatusOK, tool.DetailResponse{
+				Code:    "200",
+				Message: "success (cached)",
+				Data:    data,
+			})
+			return
+		}
 	}
 
 	// 步骤 1: 解析域名获取 IP 地址
@@ -62,6 +76,9 @@ func (h *Handler) getWebDetails(c *gin.Context) {
 		IP:           ipInfo.IP,
 		ISP:          ipInfo.ISP,
 	}
+
+	// 将结果存入缓存
+	h.cache.Set(cacheKey, data, 0) // 使用默认过期时间
 
 	c.JSON(http.StatusOK, tool.DetailResponse{
 		Code:    "200",
