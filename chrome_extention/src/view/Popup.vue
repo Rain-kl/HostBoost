@@ -170,8 +170,6 @@ const isDetecting = ref(true);
 const isBoostEnabled = ref(false);
 const isBoostSupported = ref(true);
 const isBackendError = ref(false);
-const isOptimizing = ref(false);
-const countdown = ref(3);
 const currentTabId = ref(undefined);
 const isForceBoost = ref(false); // 标记是否是强制开启的加速
 const isChangingIP = ref(false); // 标记是否正在更换优选IP
@@ -196,19 +194,17 @@ const optimizedNode = ref({
 });
 
 // 计算延迟百分比和颜色
-const latencyPercentage = computed(() => {
+computed(() => {
   const rtt = optimizedNode.value.rtt;
   return Math.min((rtt / 200) * 100, 100);
 });
-
-const latencyClass = computed(() => {
+computed(() => {
   const rtt = optimizedNode.value.rtt;
   if (rtt < 50) return "latency-excellent";
   if (rtt < 100) return "latency-good";
   if (rtt < 150) return "latency-fair";
   return "latency-poor";
 });
-
 // 检测域名是否支持CDN加速（预留接口，当前版本返回true）
 const checkCdnSupport = async (domain) => {
   try {
@@ -591,60 +587,6 @@ const toggleButtonClass = computed(() => {
 });
 
 // 重新优选
-const reoptimize = async () => {
-  if (isOptimizing.value) return;
-
-  isOptimizing.value = true;
-  countdown.value = 3;
-
-  try {
-    // 重新调用 hostPost 和 hostGet 获取最新的优化节点
-    const hostData = {
-      domain: domain.value,
-    };
-
-    await hostApi.hostPost(hostData);
-    const response = await hostApi.hostGet(domain.value);
-
-    if (
-      response.data.code === 200 &&
-      response.data.data &&
-      response.data.data.ip
-    ) {
-      // 保存 type 用于后续更换 IP
-      if (response.data.data.type) {
-        currentType.value = response.data.data.type;
-      }
-
-      optimizedNode.value = {
-        ip: response.data.data.ip,
-        rtt: 0,
-      };
-      isBackendError.value = false; // 清除后端错误状态
-    }
-  } catch (error) {
-    console.error("重新优选失败:", error);
-
-    // 只有在网络错误时才设置后端错误状态
-    if (!error.response) {
-      isBackendError.value = true;
-      detectStatus.value = {
-        icon: "⚠️",
-        text: "后端服务未启动",
-      };
-    } else {
-      // 服务端有响应但返回错误
-      isBackendError.value = false;
-      detectStatus.value = {
-        icon: "❌",
-        text: `重新优选失败: ${error.response.status}`,
-      };
-    }
-  } finally {
-    isOptimizing.value = false;
-  }
-};
-
 // 更换优选 IP
 const changeOptimizedIP = async () => {
   if (isChangingIP.value) return;
@@ -739,20 +681,6 @@ const changeOptimizedIP = async () => {
 };
 
 // 粒子动画样式
-const getParticleStyle = (index) => {
-  const x = Math.random() * 100;
-  const y = Math.random() * 100;
-  const delay = Math.random() * 5;
-  const duration = 3 + Math.random() * 4;
-
-  return {
-    left: `${x}%`,
-    top: `${y}%`,
-    animationDelay: `${delay}s`,
-    animationDuration: `${duration}s`,
-  };
-};
-
 // 验证是否为有效域名
 const isValidDomain = (hostname) => {
   if (!hostname) return false;
@@ -794,11 +722,9 @@ const isValidDomain = (hostname) => {
   }
 
   // 检查是否包含点(.)，基本的域名格式
-  if (!hostname.includes(".")) {
-    return false;
-  }
+  return hostname.includes(".");
 
-  return true;
+
 };
 
 // 获取当前域名
@@ -1251,19 +1177,4 @@ watch(domain, (newVal) => {
   }
 }
 
-/* Animations */
-.macos-fade-enter-active,
-.macos-fade-leave-active {
-  transition: all var(--macos-transition-normal);
-}
-
-.macos-fade-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-.macos-fade-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
-}
 </style>
