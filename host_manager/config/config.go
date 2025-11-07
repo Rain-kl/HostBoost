@@ -40,11 +40,11 @@ type CORSConfig struct {
 func DefaultConfig() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port: ":15920",
+			Port: "127.0.0.1:15920",
 		},
 		Data: DataConfig{
-			HostFile: "hosts.json",
-			OptFile:  "opts.json",
+			HostFile: "data/hosts.json",
+			OptFile:  "data/opts.json",
 		},
 		CORS: CORSConfig{
 			AllowOrigins:     []string{"*"},
@@ -104,15 +104,4 @@ func (c *CORSConfig) GetMaxAge() time.Duration {
 		return 12 * time.Hour // 默认值
 	}
 	return duration
-}
-
-// NormalizePort 确保端口号格式正确（以 : 开头）
-func (s *ServerConfig) NormalizePort() string {
-	if s.Port == "" {
-		return ":15920"
-	}
-	if s.Port[0] != ':' {
-		return ":" + s.Port
-	}
-	return s.Port
 }
