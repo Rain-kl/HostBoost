@@ -43,8 +43,8 @@ func DefaultConfig() *Config {
 			Port: ":15920",
 		},
 		Data: DataConfig{
-			HostFile: "hosts.json",
-			OptFile:  "opts.json",
+			HostFile: "data/hosts.json",
+			OptFile:  "data/opts.json",
 		},
 		CORS: CORSConfig{
 			AllowOrigins:     []string{"*"},

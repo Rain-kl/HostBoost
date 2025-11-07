@@ -22,8 +22,8 @@ const (
 )
 
 var (
-	configFlag   = flag.String("config", "config.yaml", "path to the configuration file")
-	configShort  = flag.String("c", "config.yaml", "path to the configuration file (shorthand)")
+	configFlag   = flag.String("config", "data/config.yaml", "path to the configuration file")
+	configShort  = flag.String("c", "data/config.yaml", "path to the configuration file (shorthand)")
 	helpFlag     = flag.Bool("help", false, "show help message")
 	helpShort    = flag.Bool("h", false, "show help message (shorthand)")
 	versionFlag  = flag.Bool("version", false, "show version information")
@@ -47,7 +47,7 @@ func main() {
 
 	// 优先使用短参数 -c
 	configPath := *configFlag
-	if *configShort != "config.yaml" {
+	if *configShort != "data/config.yaml" {
 		configPath = *configShort
 	}
 
@@ -103,7 +103,7 @@ func printHelp() {
 	fmt.Println("  host_manager [options]")
 	fmt.Println()
 	fmt.Println("Options:")
-	fmt.Println("  -c, --config <file>    Path to the configuration file (default: config.yaml)")
+	fmt.Println("  -c, --config <file>    Path to the configuration file (default: data/config.yaml)")
 	fmt.Println("  -h, --help             Show this help message")
 	fmt.Println("  -v, --version          Show version information")
 	fmt.Println()
