@@ -121,6 +121,15 @@ https://github.com/XIU2/CloudflareSpeedTest
 	globalConfig = loadConfigFile(configFile)
 	config := globalConfig
 
+	// 确保 IP 文件存在
+	ipFile := config.IPFile
+	if ipFile == "" {
+		ipFile = "ip.txt" // 默认文件名
+	}
+	if err := ensureIPFileExists(ipFile); err != nil {
+		fmt.Printf("警告: %v\n", err)
+	}
+
 	// 用配置文件的值初始化变量
 	task.Routines = config.Routines
 	task.PingTimes = config.PingTimes
@@ -222,6 +231,51 @@ func loadConfigFile(filename string) *config.Config {
 	}
 
 	return yamlConfig
+}
+
+// ensureIPFileExists 检查 IP 文件是否存在，如果不存在则创建默认的 IP 段文件
+func ensureIPFileExists(filename string) error {
+	// 检查文件是否存在
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		// 文件不存在，创建默认 IP 段文件
+		fmt.Printf("IP 文件 %s 不存在，正在创建默认 IP 文件...\n", filename)
+
+		// Cloudflare 官方 IPv4 段
+		defaultIPContent := `173.245.48.0/20
+103.21.244.0/22
+103.22.200.0/22
+103.31.4.0/22
+141.101.64.0/18
+108.162.192.0/18
+190.93.240.0/20
+188.114.96.0/20
+197.234.240.0/22
+198.41.128.0/17
+162.158.0.0/15
+104.16.0.0/12
+172.64.0.0/17
+172.64.128.0/18
+172.64.192.0/19
+172.64.224.0/22
+172.64.229.0/24
+172.64.230.0/23
+172.64.232.0/21
+172.64.240.0/21
+172.64.248.0/21
+172.65.0.0/16
+172.66.0.0/16
+172.67.0.0/16
+131.0.72.0/22
+`
+
+		// 写入文件
+		if err := os.WriteFile(filename, []byte(defaultIPContent), 0644); err != nil {
+			return fmt.Errorf("创建 IP 文件失败: %v", err)
+		}
+
+		fmt.Printf("已创建默认 IP 文件: %s\n", filename)
+	}
+	return nil
 }
 
 // 全局配置变量
