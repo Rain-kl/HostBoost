@@ -7,24 +7,47 @@
           <h1>HostBoost</h1>
           <p class="header-subtitle">{{ domain || "正在加载..." }}</p>
         </div>
-        <button
-          @click="showWebDetails = true"
-          class="info-button"
-          aria-label="网站信息"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+        <div class="header-buttons">
+          <button
+            @click="openDnsClearPage"
+            class="dns-clear-button"
+            aria-label="清理DNS缓存"
+            title="清理DNS缓存"
           >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-        </button>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </button>
+          <button
+            @click="showWebDetails = true"
+            class="info-button"
+            aria-label="网站信息"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -98,80 +121,15 @@
     />
 
     <!-- 网站详情底部抽屉 -->
-    <var-popup
-      v-model:show="showWebDetails"
-      position="bottom"
-      :close-on-click-overlay="true"
-      :safe-area-inset-bottom="true"
-      class="web-details-popup"
-    >
-      <div class="popup-content">
-        <!-- 拖动条 -->
-        <div class="popup-handle">
-          <div class="handle-bar"></div>
-        </div>
-
-        <!-- 弹窗标题 -->
-        <div class="popup-header">
-          <h2>网站信息</h2>
-          <button @click="showWebDetails = false" class="close-button">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- 内容区域 -->
-        <div class="popup-body">
-          <!-- 加载状态 -->
-          <div v-if="loadingWebDetails" class="loading-state">
-            <var-loading type="wave" :size="32" />
-            <p>正在获取信息...</p>
-          </div>
-
-          <!-- 错误状态 -->
-          <div v-else-if="webDetailsError" class="error-state">
-            <span class="error-icon">⚠️</span>
-            <p class="error-message">{{ webDetailsError }}</p>
-            <var-button type="primary" size="small" @click="fetchWebDetails"
-              >重试</var-button
-            >
-          </div>
-
-          <!-- 网站信息列表 -->
-          <div v-else-if="webDetails" class="details-list">
-            <DetailItem
-              v-for="item in webDetailsDisplay"
-              :key="item.key"
-              :icon="item.icon"
-              :label="item.label"
-              :value="item.value"
-            />
-
-            <div v-if="webDetailsDisplay.length === 0" class="empty-state">
-              <span class="empty-icon">📭</span>
-              <p>暂无可显示的信息</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </var-popup>
+    <WebDetailsDrawer v-model:show="showWebDetails" :domain="domain" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
 import { hostApi, toolApi } from "@/api/api-ref.js";
-import DetailItem from "./components/DetailItem.vue";
-import ForceBoostDialog from "./components/ForceBoostDialog.vue";
+import ForceBoostDialog from "@/components/ForceBoostDialog.vue";
+import WebDetailsDrawer from "@/components/WebDetailsDrawer.vue";
 
 // 状态管理
 const domain = ref("");
@@ -191,9 +149,6 @@ const showForceBoostDialog = ref(false);
 
 // 网站详情状态
 const showWebDetails = ref(false);
-const webDetails = ref(null);
-const loadingWebDetails = ref(false);
-const webDetailsError = ref("");
 
 const detectStatus = ref({
   icon: "🔍",
@@ -450,14 +405,6 @@ const performBoostToggle = async () => {
             };
           }
         }
-
-        // 等待1秒后重载当前网页，刷新DNS缓存
-        setTimeout(() => {
-          if (currentTabId.value) {
-            chrome.tabs.reload(currentTabId.value, { bypassCache: true });
-            console.log("已重载当前网页，刷新DNS缓存");
-          }
-        }, 1000);
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
@@ -491,14 +438,6 @@ const performBoostToggle = async () => {
             text: "可加速网站",
           };
         }
-
-        // 等待1秒后重载当前网页，刷新DNS缓存
-        setTimeout(() => {
-          if (currentTabId.value) {
-            chrome.tabs.reload(currentTabId.value, { bypassCache: true });
-            console.log("已重载当前网页，刷新DNS缓存");
-          }
-        }, 1000);
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
@@ -561,6 +500,11 @@ const handleForceBoost = async () => {
 const handleCancelForceBoost = () => {
   clickCount.value = 0;
   console.log("用户取消了强制加速");
+};
+
+// 打开 DNS 清理页面
+const openDnsClearPage = () => {
+  chrome.tabs.create({ url: "chrome://net-internals/#dns" });
 };
 
 // 获取盾牌状态文本
@@ -689,112 +633,6 @@ watch(domain, (newVal) => {
     getHost(newVal);
   }
 });
-
-// 网站详情相关方法
-const fetchWebDetails = async () => {
-  if (
-    !domain.value ||
-    domain.value === "无法解析域名" ||
-    domain.value === "未获取到当前标签页"
-  ) {
-    webDetailsError.value = "无效的域名";
-    return;
-  }
-
-  loadingWebDetails.value = true;
-  webDetailsError.value = "";
-  webDetails.value = null;
-
-  try {
-    const response = await toolApi.toolWebDetailsGet(domain.value);
-    if (
-      (response.data.code === 200 || response.data.code === "200") &&
-      response.data.data
-    ) {
-      webDetails.value = response.data.data;
-    } else {
-      webDetailsError.value = response.data.message || "获取网站信息失败";
-    }
-  } catch (error) {
-    console.error("获取网站信息失败:", error);
-    webDetailsError.value = error.message || "网络请求失败";
-  } finally {
-    loadingWebDetails.value = false;
-  }
-};
-
-// 当打开弹窗时自动获取网站信息
-watch(showWebDetails, (newVal) => {
-  if (newVal && !webDetails.value && !loadingWebDetails.value) {
-    fetchWebDetails();
-  }
-});
-
-const closeWebDetails = () => {
-  // 弹窗关闭时可选择清理数据
-  // webDetails.value = null;
-  // webDetailsError.value = "";
-};
-
-// 网站详情展示数据（处理字段不存在的情况）
-const webDetailsDisplay = computed(() => {
-  if (!webDetails.value) return [];
-
-  const details = webDetails.value;
-  const items = [
-    { key: "ip", icon: "🌐", label: "IP 地址", value: details.ip },
-    { key: "country", icon: "🌍", label: "国家", value: details.country },
-    {
-      key: "country_code",
-      icon: "🏳️",
-      label: "国家代码",
-      value: details.country_code,
-    },
-    { key: "region", icon: "📍", label: "地区", value: details.region },
-    {
-      key: "region_code",
-      icon: "🗺️",
-      label: "地区代码",
-      value: details.region_code,
-    },
-    { key: "city", icon: "🏙️", label: "城市", value: details.city },
-    {
-      key: "organization",
-      icon: "🏢",
-      label: "组织",
-      value: details.organization,
-    },
-    { key: "isp", icon: "📡", label: "ISP", value: details.isp },
-    { key: "asn", icon: "🔢", label: "ASN", value: details.asn },
-    {
-      key: "asn_organization",
-      icon: "🏛️",
-      label: "ASN 组织",
-      value: details.asn_organization,
-    },
-    { key: "timezone", icon: "🕐", label: "时区", value: details.timezone },
-    {
-      key: "offset",
-      icon: "⏱️",
-      label: "时区偏移",
-      value: details.offset ? `UTC+${details.offset / 3600}` : undefined,
-    },
-    { key: "latitude", icon: "🧭", label: "纬度", value: details.latitude },
-    { key: "longitude", icon: "🧭", label: "经度", value: details.longitude },
-    {
-      key: "continent_code",
-      icon: "🌏",
-      label: "洲代码",
-      value: details.continent_code,
-    },
-  ];
-
-  // 过滤掉值为 undefined, null, 或空字符串的项
-  return items.filter((item) => {
-    const value = item.value;
-    return value !== undefined && value !== null && value !== "";
-  });
-});
 </script>
 
 <style scoped>
@@ -851,6 +689,40 @@ const webDetailsDisplay = computed(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 260px;
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dns-clear-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff3b30;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .dns-clear-button {
+  background: rgba(255, 69, 58, 0.15);
+  color: #ff453a;
+}
+
+.dns-clear-button:hover {
+  background: rgba(255, 59, 48, 0.15);
+  transform: scale(1.05);
+}
+
+.dns-clear-button:active {
+  transform: scale(0.95);
 }
 
 .info-button {
@@ -1155,138 +1027,6 @@ const webDetailsDisplay = computed(() => {
   color: #f5f5f7;
 }
 
-/* 底部弹窗样式 */
-.web-details-popup :deep(.var-popup) {
-  border-radius: 20px 20px 0 0;
-  background: #f5f5f7;
-  max-height: 70vh;
-}
-
-.dark .web-details-popup :deep(.var-popup) {
-  background: #1c1c1e;
-}
-
-.popup-content {
-  padding: 0;
-}
-
-.popup-handle {
-  padding: 8px 0 12px;
-  display: flex;
-  justify-content: center;
-}
-
-.handle-bar {
-  width: 36px;
-  height: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.dark .handle-bar {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px 16px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .popup-header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.popup-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-.dark .popup-header h2 {
-  color: #f5f5f7;
-}
-
-.close-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #86868b;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dark .close-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #98989d;
-}
-
-.close-button:hover {
-  background: rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
-}
-
-.close-button:active {
-  transform: scale(0.95);
-}
-
-.popup-body {
-  padding: 20px;
-  max-height: calc(70vh - 80px);
-  overflow-y: auto;
-}
-
-/* 加载/错误/空状态 */
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 20px;
-  gap: 16px;
-}
-
-.loading-state p,
-.empty-state p {
-  font-size: 14px;
-  color: #86868b;
-  margin: 0;
-}
-
-.error-icon,
-.empty-icon {
-  font-size: 48px;
-}
-
-.error-message {
-  font-size: 14px;
-  color: #ff3b30;
-  text-align: center;
-  margin: 0;
-}
-
-.dark .error-message {
-  color: #ff453a;
-}
-
-/* 详情列表 */
-.details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 /* 滑入滑出动画 */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
@@ -1304,24 +1044,20 @@ const webDetailsDisplay = computed(() => {
 }
 
 /* 滚动条样式 */
-.ios-content::-webkit-scrollbar,
-.popup-body::-webkit-scrollbar {
+.ios-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.ios-content::-webkit-scrollbar-track,
-.popup-body::-webkit-scrollbar-track {
+.ios-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.ios-content::-webkit-scrollbar-thumb,
-.popup-body::-webkit-scrollbar-thumb {
+.ios-content::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
 
-.dark .ios-content::-webkit-scrollbar-thumb,
-.dark .popup-body::-webkit-scrollbar-thumb {
+.dark .ios-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 </style>
