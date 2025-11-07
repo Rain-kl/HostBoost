@@ -28,8 +28,8 @@ CloudflareSpeedTest ` + version + `
 https://github.com/XIU2/CloudflareSpeedTest
 
 参数：
-    -c config.yaml
-        指定配置文件；默认使用当前目录下的 config.yaml，不存在时自动创建；(默认 config.yaml)
+    -c cf_config.yaml
+        指定配置文件；默认使用当前目录下的 cf_config.yaml，不存在时自动创建；(默认 cf_config.yaml)
     -n 200
         延迟测速线程；越多延迟测速越快，性能弱的设备 (如路由器) 请勿太高；(默认 200 最多 1000)
     -t 4
@@ -105,7 +105,7 @@ https://github.com/XIU2/CloudflareSpeedTest
 	var tempConfigFile string
 	var tempVersion bool
 	tempFlagSet := flag.NewFlagSet("temp", flag.ContinueOnError)
-	tempFlagSet.StringVar(&tempConfigFile, "c", "config.yaml", "")
+	tempFlagSet.StringVar(&tempConfigFile, "c", "cf_config.yaml", "")
 	tempFlagSet.BoolVar(&tempVersion, "v", false, "")
 	tempFlagSet.Parse(os.Args[1:])
 
