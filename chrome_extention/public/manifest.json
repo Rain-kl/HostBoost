@@ -1,14 +1,35 @@
 {
     "manifest_version": 3,
-    "name": "Vue3 HelloWorld Extension",
-    "version": "1.0.0",
-    "description": "A simple Chrome extension built with Vue 3 + Vite",
+    "name": "HostBoostExt",
+    "version": "1.1.0",
+    "description": "为Chromium浏览器提供的一键开启优选加速拓展",
     "action": {
         "default_popup": "index.html",
-        "default_icon": "icon.png"
+        "default_icon": {
+          "16": "icons/icon16.png",
+          "32": "icons/icon32.png",
+          "48": "icons/icon48.png",
+          "128": "icons/icon128.png"
+        }
     },
     "permissions": [
         "tabs",
         "activeTab"
+    ],
+    "icons": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "web_accessible_resources": [
+        {
+          "matches": [
+            "<all_urls>"
+          ],
+          "resources": [
+            "icons/*"
+          ]
+        }
     ]
 }
