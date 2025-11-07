@@ -90,6 +90,13 @@
       </transition>
     </main>
 
+    <!-- 强制加速确认弹窗 -->
+    <ForceBoostDialog
+      v-model:show="showForceBoostDialog"
+      @confirm="handleForceBoost"
+      @cancel="handleCancelForceBoost"
+    />
+
     <!-- 网站详情底部抽屉 -->
     <var-popup
       v-model:show="showWebDetails"
@@ -164,6 +171,7 @@
 import { ref, onMounted, watch, computed } from "vue";
 import { hostApi, toolApi } from "@/api/api-ref.js";
 import DetailItem from "./components/DetailItem.vue";
+import ForceBoostDialog from "./components/ForceBoostDialog.vue";
 
 // 状态管理
 const domain = ref("");
@@ -174,6 +182,12 @@ const isBackendError = ref(false);
 const isOptimizing = ref(false);
 const countdown = ref(3);
 const currentTabId = ref(undefined);
+const isForceBoost = ref(false); // 标记是否是强制开启的加速
+
+// 三连击检测相关状态
+const clickCount = ref(0);
+const clickTimer = ref(null);
+const showForceBoostDialog = ref(false);
 
 // 网站详情状态
 const showWebDetails = ref(false);
@@ -277,6 +291,7 @@ const getHost = async (domain) => {
     ) {
       isBoostEnabled.value = true;
       isBoostSupported.value = true; // 已经加速说明肯定支持
+      isForceBoost.value = false; // 清除强制标记
 
       // 从 API 响应中获取优化节点信息
       if (response.data.data.ip) {
@@ -294,6 +309,7 @@ const getHost = async (domain) => {
     } else {
       // 查询失败或无记录（但服务端有响应），需要检测域名是否支持加速
       isBoostEnabled.value = false;
+      isForceBoost.value = false; // 清除强制标记
 
       // 检测域名是否支持加速
       isBoostSupported.value = await checkCdnSupport(domain);
@@ -360,10 +376,40 @@ const toggleBoost = async () => {
     return;
   }
 
+  // 如果网站不支持加速，检测三连击
   if (!isBoostSupported.value) {
+    handleUnsupportedClick();
     return;
   }
 
+  // 执行加速开关逻辑
+  await performBoostToggle();
+};
+
+// 处理不支持加速时的点击
+const handleUnsupportedClick = () => {
+  clickCount.value++;
+
+  // 清除之前的定时器
+  if (clickTimer.value) {
+    clearTimeout(clickTimer.value);
+  }
+
+  // 检测是否达到三次点击
+  if (clickCount.value >= 3) {
+    clickCount.value = 0;
+    showForceBoostDialog.value = true;
+    return;
+  }
+
+  // 设置1秒后重置计数器
+  clickTimer.value = setTimeout(() => {
+    clickCount.value = 0;
+  }, 1000);
+};
+
+// 执行加速开关逻辑
+const performBoostToggle = async () => {
   try {
     const hostData = {
       domain: domain.value,
@@ -430,6 +476,29 @@ const toggleBoost = async () => {
         isBoostEnabled.value = false;
         isBackendError.value = false; // 清除后端错误状态
         console.log("加速已关闭:", response.data);
+
+        // 如果是强制开启的加速，关闭后恢复原始状态
+        if (isForceBoost.value) {
+          isForceBoost.value = false;
+          isBoostSupported.value = false;
+          detectStatus.value = {
+            icon: "ℹ️",
+            text: "该网站不支持加速",
+          };
+        } else {
+          detectStatus.value = {
+            icon: "🌐",
+            text: "可加速网站",
+          };
+        }
+
+        // 等待1秒后重载当前网页，刷新DNS缓存
+        setTimeout(() => {
+          if (currentTabId.value) {
+            chrome.tabs.reload(currentTabId.value, { bypassCache: true });
+            console.log("已重载当前网页，刷新DNS缓存");
+          }
+        }, 1000);
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
@@ -464,6 +533,34 @@ const toggleBoost = async () => {
       };
     }
   }
+};
+
+// 处理强制加速确认
+const handleForceBoost = async () => {
+  // 临时标记为支持加速，执行开启逻辑
+  const originalSupported = isBoostSupported.value;
+  isBoostSupported.value = true;
+  isForceBoost.value = true; // 标记为强制开启
+
+  try {
+    await performBoostToggle();
+    // 如果成功开启，更新状态
+    detectStatus.value = {
+      icon: "✅",
+      text: "已强制开启加速",
+    };
+  } catch (error) {
+    // 如果失败，恢复原状态
+    isBoostSupported.value = originalSupported;
+    isForceBoost.value = false;
+    console.error("强制加速失败:", error);
+  }
+};
+
+// 处理取消强制加速
+const handleCancelForceBoost = () => {
+  clickCount.value = 0;
+  console.log("用户取消了强制加速");
 };
 
 // 获取盾牌状态文本
