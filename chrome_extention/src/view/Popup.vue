@@ -610,25 +610,98 @@ const getParticleStyle = (index) => {
   };
 };
 
+// 验证是否为有效域名
+const isValidDomain = (hostname) => {
+  if (!hostname) return false;
+
+  // 过滤特殊页面
+  const invalidPatterns = [
+    "newtab",
+    "extensions",
+    "settings",
+    "chrome",
+    "about:",
+    "edge:",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+  ];
+
+  // 检查是否匹配无效模式
+  const lowerHostname = hostname.toLowerCase();
+  if (invalidPatterns.some((pattern) => lowerHostname.includes(pattern))) {
+    return false;
+  }
+
+  // 检查是否为IP地址(本地网络)
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+  if (ipv4Pattern.test(hostname) || ipv6Pattern.test(hostname)) {
+    // 检查是否为本地IP
+    if (
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("172.") ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1"
+    ) {
+      return false;
+    }
+  }
+
+  // 检查是否包含点(.)，基本的域名格式
+  if (!hostname.includes(".")) {
+    return false;
+  }
+
+  return true;
+};
+
 // 获取当前域名
 onMounted(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     if (tab?.url) {
       try {
-        domain.value = new URL(tab.url).hostname;
+        const url = new URL(tab.url);
+        domain.value = url.hostname;
         currentTabId.value = tab.id; // 保存当前标签页ID
+
+        // 验证域名有效性
+        if (!isValidDomain(domain.value)) {
+          // 如果不是有效域名，直接标记为不支持
+          isDetecting.value = false;
+          isBoostSupported.value = false;
+          isBoostEnabled.value = false;
+          detectStatus.value = {
+            icon: "ℹ️",
+            text: "该网站不支持加速",
+          };
+        }
       } catch {
         domain.value = "无法解析域名";
+        isDetecting.value = false;
+        isBoostSupported.value = false;
+        detectStatus.value = {
+          icon: "⚠️",
+          text: "无法解析域名",
+        };
       }
     } else {
       domain.value = "未获取到当前标签页";
+      isDetecting.value = false;
+      isBoostSupported.value = false;
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "未获取到当前标签页",
+      };
     }
   });
 });
 
 watch(domain, (newVal) => {
-  if (newVal) {
+  if (newVal && isValidDomain(newVal)) {
     isDetecting.value = true;
     getHost(newVal);
   }
