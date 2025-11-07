@@ -3,61 +3,52 @@
     v-model:show="visible"
     position="center"
     :close-on-click-overlay="true"
-    :overlay-style="{ background: 'rgba(0, 0, 0, 0.5)' }"
-    class="force-boost-dialog"
+    :overlay-style="{ background: 'rgba(0, 0, 0, 0.4)' }"
+    class="macos-dialog-popup"
   >
-    <div class="dialog-container">
-      <!-- 图标 -->
-      <div class="dialog-icon">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+    <div class="macos-dialog">
+      <!-- Icon -->
+      <div class="dialog-icon-wrapper">
+        <svg
+          class="dialog-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path
             d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z"
-            stroke="#FF9500"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            fill="none"
           />
-          <path
-            d="M12 8V13"
-            stroke="#FF9500"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-          <circle cx="12" cy="16" r="1" fill="#FF9500" />
+          <path d="M12 8V13" stroke-width="2" />
+          <circle cx="12" cy="16" r="1" fill="currentColor" />
         </svg>
       </div>
 
-      <!-- 标题 -->
-      <h3 class="dialog-title">强制开启加速</h3>
+      <!-- Content -->
+      <div class="dialog-content">
+        <h3 class="dialog-title">强制开启加速</h3>
+        <p class="dialog-message">
+          该网站未被识别为支持的加速节点。 强制开启可能无法正常工作。
+          是否确认开启?
+        </p>
+      </div>
 
-      <!-- 描述 -->
-      <p class="dialog-description">
-        该网站未被识别为支持的加速节点。<br />
-        强制开启可能无法正常工作。<br />
-        是否确认开启?
-      </p>
-
-      <!-- 按钮组 -->
+      <!-- Actions -->
       <div class="dialog-actions">
-        <var-button
-          type="default"
-          size="large"
-          block
+        <button
           @click="handleCancel"
-          class="cancel-button"
+          class="dialog-button dialog-button-secondary"
         >
           取消
-        </var-button>
-        <var-button
-          type="primary"
-          size="large"
-          block
+        </button>
+        <button
           @click="handleConfirm"
-          class="confirm-button"
+          class="dialog-button dialog-button-primary"
         >
           确认开启
-        </var-button>
+        </button>
       </div>
     </div>
   </var-popup>
@@ -100,38 +91,55 @@ const handleCancel = () => {
 </script>
 
 <style scoped>
-.force-boost-dialog :deep(.var-popup__content) {
+.macos-dialog-popup :deep(.var-popup__content) {
   background: transparent;
 }
 
-.dialog-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 20px;
-  padding: 32px 24px 24px;
-  width: 320px;
+.macos-dialog {
+  width: 300px;
+  background: var(--macos-glass-heavy);
+  backdrop-filter: saturate(180%) blur(40px);
+  -webkit-backdrop-filter: saturate(180%) blur(40px);
+  border-radius: var(--macos-radius-xl);
+  border: 1px solid var(--macos-separator-light);
+  padding: var(--macos-space-2xl);
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--macos-shadow-xl);
+  animation: dialogAppear 0.3s var(--macos-spring);
 }
 
-.dark .dialog-container {
-  background: rgba(44, 44, 46, 0.95);
+@keyframes dialogAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-.dialog-icon {
-  margin-bottom: 16px;
-  animation: bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+.dialog-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--macos-warning) 15%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--macos-space-lg);
+  animation: iconBounce 0.5s var(--macos-spring);
 }
 
-@keyframes bounce {
+@keyframes iconBounce {
   0% {
     transform: scale(0);
     opacity: 0;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
   100% {
     transform: scale(1);
@@ -139,81 +147,79 @@ const handleCancel = () => {
   }
 }
 
+.dialog-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--macos-warning);
+}
+
+.dialog-content {
+  text-align: center;
+  margin-bottom: var(--macos-space-xl);
+}
+
 .dialog-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
   letter-spacing: -0.3px;
-  text-align: center;
+  color: var(--macos-text-primary);
+  margin: 0 0 var(--macos-space-sm);
 }
 
-.dark .dialog-title {
-  color: #f5f5f7;
-}
-
-.dialog-description {
-  font-size: 14px;
-  color: #86868b;
-  line-height: 1.6;
-  text-align: center;
-  margin: 0 0 24px;
+.dialog-message {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--macos-text-secondary);
+  margin: 0;
+  font-weight: 400;
 }
 
 .dialog-actions {
   width: 100%;
   display: flex;
-  gap: 12px;
+  gap: var(--macos-space-sm);
 }
 
-.cancel-button {
-  background: rgba(0, 0, 0, 0.05) !important;
-  color: #1d1d1f !important;
-  border: none !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+.dialog-button {
+  flex: 1;
+  height: 40px;
+  border-radius: var(--macos-radius-md);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--macos-transition-fast);
 }
 
-.dark .cancel-button {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #f5f5f7 !important;
+.dialog-button-secondary {
+  background: var(--macos-bg-secondary);
+  color: var(--macos-text-primary);
 }
 
-.cancel-button:hover {
-  background: rgba(0, 0, 0, 0.1) !important;
+.dialog-button-secondary:hover {
+  background: var(--macos-bg-tertiary);
   transform: translateY(-1px);
 }
 
-.cancel-button:active {
+.dialog-button-secondary:active {
   transform: translateY(0);
 }
 
-.confirm-button {
-  background: linear-gradient(135deg, #ff9500 0%, #ff9f0a 100%) !important;
-  border: none !important;
-  font-weight: 600 !important;
-  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3) !important;
-  transition: all 0.2s ease !important;
+.dialog-button-primary {
+  background: var(--macos-warning);
+  color: white;
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--macos-warning) 30%, transparent);
 }
 
-.confirm-button:hover {
+.dialog-button-primary:hover {
+  background: color-mix(in srgb, var(--macos-warning) 90%, white);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(255, 149, 0, 0.4) !important;
+  box-shadow: 0 4px 12px
+    color-mix(in srgb, var(--macos-warning) 40%, transparent);
 }
 
-.confirm-button:active {
+.dialog-button-primary:active {
   transform: translateY(0);
-}
-
-/* 按钮组响应式 */
-@media (max-width: 360px) {
-  .dialog-container {
-    width: 280px;
-    padding: 24px 20px 20px;
-  }
-
-  .dialog-actions {
-    flex-direction: column;
-  }
 }
 </style>

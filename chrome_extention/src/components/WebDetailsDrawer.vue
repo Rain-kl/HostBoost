@@ -211,83 +211,79 @@ const displayItems = computed(() => {
 </script>
 
 <style scoped>
-/* 底部弹窗样式 */
+/* macOS 15 Bottom Drawer */
 .web-details-popup :deep(.var-popup) {
-  border-radius: 20px 20px 0 0;
-  background: #f5f5f7;
-  max-height: 70vh;
-}
-
-.dark .web-details-popup :deep(.var-popup) {
-  background: #1c1c1e;
+  border-radius: var(--macos-radius-2xl) var(--macos-radius-2xl) 0 0;
+  background: var(--macos-bg-primary);
+  max-height: 75vh;
 }
 
 .popup-content {
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Drag Handle */
 .popup-handle {
-  padding: 8px 0 12px;
+  padding: var(--macos-space-md) 0;
   display: flex;
   justify-content: center;
+  cursor: grab;
+}
+
+.popup-handle:active {
+  cursor: grabbing;
 }
 
 .handle-bar {
-  width: 36px;
-  height: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+  width: 40px;
+  height: 4px;
+  background: var(--macos-text-tertiary);
+  border-radius: var(--macos-radius-sm);
+  opacity: 0.4;
+  transition: all var(--macos-transition-fast);
 }
 
-.dark .handle-bar {
-  background: rgba(255, 255, 255, 0.3);
+.popup-handle:hover .handle-bar {
+  opacity: 0.6;
+  width: 48px;
 }
 
+/* Header */
 .popup-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 16px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .popup-header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  padding: 0 var(--macos-space-xl) var(--macos-space-lg);
+  border-bottom: 1px solid var(--macos-separator-light);
 }
 
 .popup-header h2 {
   font-size: 20px;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin: 0;
+  font-weight: 600;
   letter-spacing: -0.3px;
-}
-
-.dark .popup-header h2 {
-  color: #f5f5f7;
+  color: var(--macos-text-primary);
+  margin: 0;
 }
 
 .close-button {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--macos-bg-secondary);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #86868b;
+  color: var(--macos-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.dark .close-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #98989d;
+  transition: all var(--macos-transition-fast);
 }
 
 .close-button:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--macos-bg-tertiary);
+  color: var(--macos-text-primary);
   transform: scale(1.05);
 }
 
@@ -295,13 +291,15 @@ const displayItems = computed(() => {
   transform: scale(0.95);
 }
 
+/* Body */
 .popup-body {
-  padding: 20px;
-  max-height: calc(70vh - 80px);
+  flex: 1;
+  padding: var(--macos-space-xl);
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-/* 加载/错误/空状态 */
+/* States */
 .loading-state,
 .error-state,
 .empty-state {
@@ -309,41 +307,41 @@ const displayItems = computed(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px;
-  gap: 16px;
+  padding: var(--macos-space-3xl) var(--macos-space-xl);
+  gap: var(--macos-space-lg);
+  min-height: 200px;
 }
 
 .loading-state p,
 .empty-state p {
   font-size: 14px;
-  color: #86868b;
+  color: var(--macos-text-secondary);
   margin: 0;
+  font-weight: 400;
 }
 
 .error-icon,
 .empty-icon {
   font-size: 48px;
+  opacity: 0.8;
 }
 
 .error-message {
   font-size: 14px;
-  color: #ff3b30;
+  color: var(--macos-error);
   text-align: center;
   margin: 0;
+  line-height: 1.5;
 }
 
-.dark .error-message {
-  color: #ff453a;
-}
-
-/* 详情列表 */
+/* Details List */
 .details-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--macos-space-sm);
 }
 
-/* 滚动条样式 */
+/* Scrollbar */
 .popup-body::-webkit-scrollbar {
   width: 6px;
 }
@@ -353,11 +351,12 @@ const displayItems = computed(() => {
 }
 
 .popup-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+  background: var(--macos-text-tertiary);
+  border-radius: var(--macos-radius-sm);
+  opacity: 0.3;
 }
 
-.dark .popup-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+.popup-body::-webkit-scrollbar-thumb:hover {
+  opacity: 0.5;
 }
 </style>

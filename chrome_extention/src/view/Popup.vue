@@ -1,26 +1,28 @@
 <template>
-  <div class="ios-container">
-    <!-- 顶部导航栏 -->
-    <header class="ios-header">
+  <div class="macos-container">
+    <!-- Header -->
+    <header class="macos-header">
       <div class="header-content">
-        <div class="header-title">
-          <h1>HostBoost</h1>
-          <p class="header-subtitle">{{ domain || "正在加载..." }}</p>
+        <div class="header-info">
+          <h1 class="app-title">HostBoost</h1>
+          <p class="domain-text">{{ domain || "正在加载..." }}</p>
         </div>
-        <div class="header-buttons">
+        <div class="header-actions">
           <button
             @click="openDnsClearPage"
-            class="dns-clear-button"
+            class="icon-button"
             aria-label="清理DNS缓存"
             title="清理DNS缓存"
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
               <path d="M3 6h18" />
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
@@ -31,16 +33,19 @@
           </button>
           <button
             @click="showWebDetails = true"
-            class="info-button"
+            class="icon-button"
             aria-label="网站信息"
+            title="网站信息"
           >
             <svg
-              width="24"
-              height="24"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="16" x2="12" y2="12" />
@@ -51,69 +56,72 @@
       </div>
     </header>
 
-    <!-- 主内容区 -->
-    <main class="ios-content">
-      <!-- 状态指示器 -->
-      <div class="status-indicator" :class="statusClass">
+    <!-- Main Content -->
+    <main class="macos-main">
+      <!-- Status Badge -->
+      <div class="status-badge" :class="statusClass">
         <span class="status-icon">{{ detectStatus.icon }}</span>
-        <span class="status-text">{{ detectStatus.text }}</span>
+        <span class="status-label">{{ detectStatus.text }}</span>
       </div>
 
-      <!-- 主控制卡片 -->
-      <div class="control-card">
+      <!-- Control Center -->
+      <div class="control-center">
         <button
           @click="toggleBoost"
           :disabled="isDetecting"
-          class="boost-toggle"
+          class="boost-button"
           :class="toggleButtonClass"
         >
-          <div v-if="isBoostEnabled" class="pulse-ring"></div>
-          <div class="toggle-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <div v-if="isBoostEnabled" class="active-ring"></div>
+          <div class="boost-icon-wrapper">
+            <svg
+              class="boost-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path
                 d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z"
-                :fill="isBoostEnabled ? 'currentColor' : 'none'"
-                :stroke="isBoostEnabled ? 'none' : 'currentColor'"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               />
               <path
                 v-if="isBoostEnabled"
                 d="M9 12L11 14L15 10"
-                stroke="white"
+                class="checkmark"
                 stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               />
             </svg>
           </div>
         </button>
 
-        <div class="toggle-label">
-          <p class="toggle-title">{{ getToggleTitle() }}</p>
-          <p class="toggle-description">{{ getShieldStatusText() }}</p>
+        <div class="control-info">
+          <h2 class="control-title">{{ getToggleTitle() }}</h2>
+          <p class="control-description">{{ getShieldStatusText() }}</p>
         </div>
       </div>
 
-      <!-- CDN 信息卡片 -->
-      <transition name="slide-fade">
+      <!-- CDN Info Card -->
+      <transition name="macos-fade">
         <div v-if="isBoostEnabled" class="info-card">
-          <div class="info-header">
-            <span class="info-title">CDN 节点</span>
-            <span class="status-badge">已解析</span>
+          <div class="card-header">
+            <span class="card-title">CDN 节点</span>
+            <span class="badge badge-success">已解析</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">优选 IP</span>
-            <span class="info-value">{{
-              optimizedNode.ip || "获取中..."
-            }}</span>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="info-key">优选 IP</span>
+              <span class="info-value">{{
+                optimizedNode.ip || "获取中..."
+              }}</span>
+            </div>
           </div>
-          <div class="info-actions">
+          <div class="card-footer">
             <button
               @click="changeOptimizedIP"
               :disabled="isChangingIP"
-              class="change-ip-button"
+              class="action-button"
               title="当前IP效果不好时，更换为新的优选IP"
             >
               <svg
@@ -124,12 +132,14 @@
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
                 <path
                   d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
                 />
               </svg>
-              <span v-if="isChangingIP" class="spinner"></span>
+              <span v-if="isChangingIP" class="loading-spinner"></span>
               <span>{{ isChangingIP ? "更换中..." : "更换优选IP" }}</span>
             </button>
           </div>
@@ -137,14 +147,13 @@
       </transition>
     </main>
 
-    <!-- 强制加速确认弹窗 -->
+    <!-- Dialogs -->
     <ForceBoostDialog
       v-model:show="showForceBoostDialog"
       @confirm="handleForceBoost"
       @cancel="handleCancelForceBoost"
     />
 
-    <!-- 网站详情底部抽屉 -->
     <WebDetailsDrawer v-model:show="showWebDetails" :domain="domain" />
   </div>
 </template>
@@ -843,457 +852,397 @@ watch(domain, (newVal) => {
 </script>
 
 <style scoped>
-/* iOS 16 风格设计 */
-.ios-container {
-  width: 380px;
-  height: 600px;
-  background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
-  overflow: hidden;
+/* Container */
+.macos-container {
+  width: 360px;
+  min-height: 480px;
+  background: var(--macos-bg-primary);
+  display: flex;
+  flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    "SF Pro Text", sans-serif;
+  color: var(--macos-text-primary);
+  overflow: hidden;
 }
 
-.dark .ios-container {
-  background: linear-gradient(180deg, #1c1c1e 0%, #000000 100%);
-}
-
-/* 顶部导航栏 */
-.ios-header {
-  padding: 16px 20px 12px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-.dark .ios-header {
-  background: rgba(28, 28, 30, 0.72);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+/* Header */
+.macos-header {
+  padding: var(--macos-space-lg) var(--macos-space-lg) var(--macos-space-md);
+  border-bottom: 1px solid var(--macos-separator-light);
 }
 
 .header-content {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--macos-space-md);
 }
 
-.header-title h1 {
-  font-size: 22px;
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-title {
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  color: #1d1d1f;
+  line-height: 1.3;
+  letter-spacing: -0.4px;
   margin: 0;
+  color: var(--macos-text-primary);
 }
 
-.dark .header-title h1 {
-  color: #f5f5f7;
-}
-
-.header-subtitle {
+.domain-text {
   font-size: 13px;
-  color: #86868b;
+  color: var(--macos-text-secondary);
   margin: 2px 0 0;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 260px;
+  font-weight: 400;
 }
 
-.header-buttons {
+.header-actions {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: var(--macos-space-sm);
+  flex-shrink: 0;
 }
 
-.dns-clear-button {
+.icon-button {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 59, 48, 0.1);
+  border-radius: var(--macos-radius-md);
+  background: var(--macos-bg-secondary);
   border: none;
+  color: var(--macos-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff3b30;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--macos-transition-fast);
 }
 
-.dark .dns-clear-button {
-  background: rgba(255, 69, 58, 0.15);
-  color: #ff453a;
-}
-
-.dns-clear-button:hover {
-  background: rgba(255, 59, 48, 0.15);
+.icon-button:hover {
+  background: var(--macos-bg-tertiary);
+  color: var(--macos-text-primary);
   transform: scale(1.05);
 }
 
-.dns-clear-button:active {
+.icon-button:active {
   transform: scale(0.95);
 }
 
-.info-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
-  border: none;
+/* Main Content */
+.macos-main {
+  flex: 1;
+  padding: var(--macos-space-lg);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #007aff;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dark .info-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #0a84ff;
-}
-
-.info-button:hover {
-  background: rgba(0, 122, 255, 0.1);
-  transform: scale(1.05);
-}
-
-.info-button:active {
-  transform: scale(0.95);
-}
-
-/* 主内容区 */
-.ios-content {
-  padding: 20px;
+  flex-direction: column;
+  gap: var(--macos-space-lg);
   overflow-y: auto;
-  height: calc(600px - 72px);
 }
 
-/* 状态指示器 */
-.status-indicator {
-  display: flex;
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  gap: var(--macos-space-sm);
+  padding: var(--macos-space-sm) var(--macos-space-md);
+  border-radius: var(--macos-radius-lg);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--macos-transition-normal);
 }
 
-.dark .status-indicator {
-  background: rgba(58, 58, 60, 0.6);
-  border-color: rgba(255, 255, 255, 0.06);
+.status-badge.status-active {
+  background: color-mix(in srgb, var(--macos-success) 15%, transparent);
+  color: var(--macos-success);
+}
+
+.status-badge.status-idle {
+  background: color-mix(in srgb, var(--macos-accent) 15%, transparent);
+  color: var(--macos-accent);
+}
+
+.status-badge.status-error {
+  background: color-mix(in srgb, var(--macos-error) 15%, transparent);
+  color: var(--macos-error);
+}
+
+.status-badge.status-disabled {
+  background: var(--macos-bg-secondary);
+  color: var(--macos-text-tertiary);
 }
 
 .status-icon {
-  font-size: 20px;
+  font-size: 16px;
+  line-height: 1;
 }
 
-.status-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-  flex: 1;
+.status-label {
+  line-height: 1;
 }
 
-.dark .status-text {
-  color: #f5f5f7;
-}
-
-.status-active {
-  background: linear-gradient(
-    135deg,
-    rgba(52, 199, 89, 0.15) 0%,
-    rgba(48, 209, 88, 0.1) 100%
-  );
-  border-color: rgba(52, 199, 89, 0.2);
-}
-
-.status-error {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 149, 0, 0.15) 0%,
-    rgba(255, 159, 10, 0.1) 100%
-  );
-  border-color: rgba(255, 149, 0, 0.2);
-}
-
-.status-disabled {
-  opacity: 0.6;
-}
-
-/* 主控制卡片 */
-.control-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 24px;
-  padding: 32px 24px;
-  margin-bottom: 16px;
+/* Control Center */
+.control-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--macos-space-lg);
+  padding: var(--macos-space-2xl) 0;
 }
 
-.dark .control-card {
-  background: rgba(58, 58, 60, 0.7);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-
-/* 加速切换按钮 */
-.boost-toggle {
+.boost-button {
   position: relative;
   width: 120px;
   height: 120px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all var(--macos-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dark .boost-toggle {
-  background: linear-gradient(135deg, #3a3a3c 0%, #2c2c2e 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.boost-toggle:disabled {
+.boost-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.boost-toggle:not(:disabled):hover {
+.boost-button.toggle-idle {
+  background: var(--macos-bg-secondary);
+  box-shadow: var(--macos-shadow-md);
+}
+
+.boost-button.toggle-idle:hover:not(:disabled) {
+  background: var(--macos-bg-tertiary);
+  box-shadow: var(--macos-shadow-lg);
   transform: scale(1.05);
 }
 
-.boost-toggle:not(:disabled):active {
-  transform: scale(0.98);
-}
-
-.toggle-active {
-  background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
-  box-shadow: 0 12px 32px rgba(52, 199, 89, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.toggle-error {
-  background: linear-gradient(135deg, #ff9500 0%, #ff9f0a 100%);
-  box-shadow: 0 12px 32px rgba(255, 149, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.toggle-disabled {
-  background: linear-gradient(135deg, #c7c7cc 0%, #d1d1d6 100%);
-  opacity: 0.6;
-}
-
-.dark .toggle-disabled {
-  background: linear-gradient(135deg, #48484a 0%, #3a3a3c 100%);
-}
-
-.toggle-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: #86868b;
-  transition: all 0.3s ease;
-}
-
-.toggle-active .toggle-icon {
-  color: white;
-}
-
-.toggle-error .toggle-icon {
-  color: white;
-}
-
-.dark .toggle-icon {
-  color: #98989d;
-}
-
-/* 脉冲环 */
-.pulse-ring {
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(52, 199, 89, 0.3) 0%,
-    transparent 70%
+.boost-button.toggle-active {
+  background: linear-gradient(
+    135deg,
+    var(--macos-success) 0%,
+    color-mix(in srgb, var(--macos-success) 85%, white) 100%
   );
+  box-shadow: 0 8px 24px
+      color-mix(in srgb, var(--macos-success) 40%, transparent),
+    var(--macos-shadow-lg);
+}
+
+.boost-button.toggle-active:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px
+      color-mix(in srgb, var(--macos-success) 50%, transparent),
+    var(--macos-shadow-xl);
+}
+
+.boost-button.toggle-error {
+  background: linear-gradient(
+    135deg,
+    var(--macos-error) 0%,
+    color-mix(in srgb, var(--macos-error) 85%, white) 100%
+  );
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--macos-error) 40%, transparent),
+    var(--macos-shadow-lg);
+}
+
+.boost-button.toggle-disabled {
+  background: var(--macos-bg-secondary);
+  box-shadow: var(--macos-shadow-sm);
+}
+
+.boost-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.active-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 2px solid var(--macos-success);
+  opacity: 0.3;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
   0%,
   100% {
-    opacity: 1;
     transform: scale(1);
+    opacity: 0.3;
   }
   50% {
-    opacity: 0.5;
     transform: scale(1.1);
+    opacity: 0.1;
   }
 }
 
-/* 切换标签 */
-.toggle-label {
-  text-align: center;
-}
-
-.toggle-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0 0 4px;
-  letter-spacing: -0.3px;
-}
-
-.dark .toggle-title {
-  color: #f5f5f7;
-}
-
-.toggle-description {
-  font-size: 13px;
-  color: #86868b;
-  margin: 0;
-}
-
-/* 信息卡片 */
-.info-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
-}
-
-.dark .info-card {
-  background: rgba(58, 58, 60, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-
-.info-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.info-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1d1d1f;
-}
-
-.dark .info-title {
-  color: #f5f5f7;
-}
-
-.status-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #34c759;
-  background: rgba(52, 199, 89, 0.15);
-  padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-}
-
-.info-label {
-  font-size: 13px;
-  color: #86868b;
-}
-
-.info-value {
-  font-size: 13px;
-  font-weight: 500;
-  font-family: "SF Mono", Monaco, "Courier New", monospace;
-  color: #1d1d1f;
-}
-
-.dark .info-value {
-  color: #f5f5f7;
-}
-
-/* 信息卡片操作区域 */
-.info-actions {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.dark .info-actions {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.change-ip-button {
-  width: 100%;
+.boost-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+}
+
+.boost-icon {
+  width: 56px;
+  height: 56px;
+}
+
+.boost-button.toggle-active .boost-icon {
   color: white;
-  font-size: 13px;
+}
+
+.boost-button.toggle-idle .boost-icon,
+.boost-button.toggle-disabled .boost-icon {
+  color: var(--macos-text-secondary);
+}
+
+.boost-button.toggle-error .boost-icon {
+  color: white;
+}
+
+.boost-icon .checkmark {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: checkmark 0.4s ease-out 0.2s forwards;
+}
+
+@keyframes checkmark {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.control-info {
+  text-align: center;
+}
+
+.control-title {
+  font-size: 22px;
   font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0;
+  color: var(--macos-text-primary);
+}
+
+.control-description {
+  font-size: 14px;
+  color: var(--macos-text-secondary);
+  margin: 4px 0 0;
+  font-weight: 400;
+}
+
+/* Info Card */
+.info-card {
+  background: var(--macos-glass-light);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-radius: var(--macos-radius-xl);
+  border: 1px solid var(--macos-separator-light);
+  padding: var(--macos-space-lg);
+  box-shadow: var(--macos-shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--macos-space-md);
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--macos-text-primary);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: var(--macos-radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: color-mix(in srgb, var(--macos-success) 15%, transparent);
+  color: var(--macos-success);
+}
+
+.card-content {
+  margin-bottom: var(--macos-space-md);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--macos-space-md);
+  padding: var(--macos-space-sm) 0;
+}
+
+.info-key {
+  font-size: 14px;
+  color: var(--macos-text-secondary);
+  font-weight: 400;
+}
+
+.info-value {
+  font-size: 14px;
+  color: var(--macos-text-primary);
+  font-weight: 500;
+  font-family: "SF Mono", Monaco, "Courier New", monospace;
+  text-align: right;
+  word-break: break-all;
+}
+
+.card-footer {
+  display: flex;
+  gap: var(--macos-space-sm);
+  padding-top: var(--macos-space-sm);
+  border-top: 1px solid var(--macos-separator-light);
+}
+
+.action-button {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--macos-radius-md);
+  background: var(--macos-accent);
+  color: white;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--macos-space-sm);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+  transition: all var(--macos-transition-fast);
 }
 
-.change-ip-button:hover:not(:disabled) {
+.action-button:hover:not(:disabled) {
+  background: var(--macos-accent-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+  box-shadow: var(--macos-shadow-md);
 }
 
-.change-ip-button:active:not(:disabled) {
+.action-button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.change-ip-button:disabled {
+.action-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.dark .change-ip-button {
-  background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
-}
-
-.dark .change-ip-button:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
-}
-
-/* 加载动画 */
-.spinner {
+.loading-spinner {
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
@@ -1302,37 +1251,19 @@ watch(domain, (newVal) => {
   }
 }
 
-/* 滑入滑出动画 */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Animations */
+.macos-fade-enter-active,
+.macos-fade-leave-active {
+  transition: all var(--macos-transition-normal);
 }
 
-.slide-fade-enter-from {
+.macos-fade-enter-from {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translateY(-8px);
 }
 
-.slide-fade-leave-to {
+.macos-fade-leave-to {
   opacity: 0;
-  transform: translateY(12px);
-}
-
-/* 滚动条样式 */
-.ios-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.ios-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.ios-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.dark .ios-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(8px);
 }
 </style>
