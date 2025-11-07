@@ -35,40 +35,43 @@ const displayValue = computed(() => {
 </script>
 
 <style scoped>
+/* macOS 15 Detail Item */
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 14px;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+  gap: var(--macos-space-md);
+  padding: var(--macos-space-md) var(--macos-space-lg);
+  background: var(--macos-glass-light);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-radius: var(--macos-radius-lg);
+  border: 1px solid var(--macos-separator-light);
+  transition: all var(--macos-transition-fast);
+  cursor: default;
 }
 
-.dark .detail-item {
-  background: rgba(58, 58, 60, 0.6);
-  border-color: rgba(255, 255, 255, 0.06);
+.detail-item:hover {
+  background: var(--macos-glass-medium);
+  border-color: var(--macos-separator-medium);
+  transform: translateY(-1px);
+  box-shadow: var(--macos-shadow-sm);
 }
 
 .detail-item:active {
-  background: rgba(0, 0, 0, 0.05);
   transform: scale(0.98);
 }
 
-.dark .detail-item:active {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .detail-icon {
-  font-size: 24px;
+  font-size: 22px;
+  line-height: 1;
   flex-shrink: 0;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--macos-bg-secondary);
+  border-radius: var(--macos-radius-md);
 }
 
 .detail-content {
@@ -77,29 +80,24 @@ const displayValue = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--macos-space-md);
 }
 
 .detail-label {
-  font-size: 15px;
-  color: #1d1d1f;
+  font-size: 14px;
   font-weight: 500;
+  color: var(--macos-text-primary);
   flex-shrink: 0;
-}
-
-.dark .detail-label {
-  color: #f5f5f7;
+  letter-spacing: -0.1px;
 }
 
 .detail-value {
-  font-size: 14px;
-  color: #86868b;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--macos-text-secondary);
   text-align: right;
-  word-break: break-all;
+  word-break: break-word;
   font-family: "SF Mono", Monaco, "Courier New", monospace;
-}
-
-.dark .detail-value {
-  color: #98989d;
+  line-height: 1.4;
 }
 </style>

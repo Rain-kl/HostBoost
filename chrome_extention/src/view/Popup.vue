@@ -1,169 +1,168 @@
 <template>
-  <div class="ios-container">
-    <!-- 顶部导航栏 -->
-    <header class="ios-header">
+  <div class="macos-container">
+    <!-- Header -->
+    <header class="macos-header">
       <div class="header-content">
-        <div class="header-title">
-          <h1>HostBoost</h1>
-          <p class="header-subtitle">{{ domain || "正在加载..." }}</p>
+        <div class="header-info">
+          <h1 class="app-title">HostBoost</h1>
+          <p class="domain-text">{{ domain || "正在加载..." }}</p>
         </div>
-        <button
-          @click="showWebDetails = true"
-          class="info-button"
-          aria-label="网站信息"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+        <div class="header-actions">
+          <button
+            @click="openDnsClearPage"
+            class="icon-button"
+            aria-label="清理DNS缓存"
+            title="清理DNS缓存"
           >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-        </button>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </button>
+          <button
+            @click="showWebDetails = true"
+            class="icon-button"
+            aria-label="网站信息"
+            title="网站信息"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- 主内容区 -->
-    <main class="ios-content">
-      <!-- 状态指示器 -->
-      <div class="status-indicator" :class="statusClass">
+    <!-- Main Content -->
+    <main class="macos-main">
+      <!-- Status Badge -->
+      <div class="status-badge" :class="statusClass">
         <span class="status-icon">{{ detectStatus.icon }}</span>
-        <span class="status-text">{{ detectStatus.text }}</span>
+        <span class="status-label">{{ detectStatus.text }}</span>
       </div>
 
-      <!-- 主控制卡片 -->
-      <div class="control-card">
+      <!-- Control Center -->
+      <div class="control-center">
         <button
           @click="toggleBoost"
           :disabled="isDetecting"
-          class="boost-toggle"
+          class="boost-button"
           :class="toggleButtonClass"
         >
-          <div v-if="isBoostEnabled" class="pulse-ring"></div>
-          <div class="toggle-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <div v-if="isBoostEnabled" class="active-ring"></div>
+          <div class="boost-icon-wrapper">
+            <svg
+              class="boost-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path
                 d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z"
-                :fill="isBoostEnabled ? 'currentColor' : 'none'"
-                :stroke="isBoostEnabled ? 'none' : 'currentColor'"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               />
               <path
                 v-if="isBoostEnabled"
                 d="M9 12L11 14L15 10"
-                stroke="white"
+                class="checkmark"
                 stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
               />
             </svg>
           </div>
         </button>
 
-        <div class="toggle-label">
-          <p class="toggle-title">{{ getToggleTitle() }}</p>
-          <p class="toggle-description">{{ getShieldStatusText() }}</p>
+        <div class="control-info">
+          <h2 class="control-title">{{ getToggleTitle() }}</h2>
+          <p class="control-description">{{ getShieldStatusText() }}</p>
         </div>
       </div>
 
-      <!-- CDN 信息卡片 -->
-      <transition name="slide-fade">
+      <!-- CDN Info Card -->
+      <transition name="macos-fade">
         <div v-if="isBoostEnabled" class="info-card">
-          <div class="info-header">
-            <span class="info-title">CDN 节点</span>
-            <span class="status-badge">已解析</span>
+          <div class="card-header">
+            <span class="card-title">CDN 节点</span>
+            <span class="badge badge-success">已解析</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">优选 IP</span>
-            <span class="info-value">{{
-              optimizedNode.ip || "获取中..."
-            }}</span>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="info-key">优选 IP</span>
+              <span class="info-value">{{
+                optimizedNode.ip || "获取中..."
+              }}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button
+              @click="changeOptimizedIP"
+              :disabled="isChangingIP"
+              class="action-button"
+              title="当前IP效果不好时，更换为新的优选IP"
+            >
+              <svg
+                v-if="!isChangingIP"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                />
+              </svg>
+              <span v-if="isChangingIP" class="loading-spinner"></span>
+              <span>{{ isChangingIP ? "更换中..." : "更换优选IP" }}</span>
+            </button>
           </div>
         </div>
       </transition>
     </main>
 
-    <!-- 网站详情底部抽屉 -->
-    <var-popup
-      v-model:show="showWebDetails"
-      position="bottom"
-      :close-on-click-overlay="true"
-      :safe-area-inset-bottom="true"
-      class="web-details-popup"
-    >
-      <div class="popup-content">
-        <!-- 拖动条 -->
-        <div class="popup-handle">
-          <div class="handle-bar"></div>
-        </div>
+    <!-- Dialogs -->
+    <ForceBoostDialog
+      v-model:show="showForceBoostDialog"
+      @confirm="handleForceBoost"
+      @cancel="handleCancelForceBoost"
+    />
 
-        <!-- 弹窗标题 -->
-        <div class="popup-header">
-          <h2>网站信息</h2>
-          <button @click="showWebDetails = false" class="close-button">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- 内容区域 -->
-        <div class="popup-body">
-          <!-- 加载状态 -->
-          <div v-if="loadingWebDetails" class="loading-state">
-            <var-loading type="wave" :size="32" />
-            <p>正在获取信息...</p>
-          </div>
-
-          <!-- 错误状态 -->
-          <div v-else-if="webDetailsError" class="error-state">
-            <span class="error-icon">⚠️</span>
-            <p class="error-message">{{ webDetailsError }}</p>
-            <var-button type="primary" size="small" @click="fetchWebDetails"
-              >重试</var-button
-            >
-          </div>
-
-          <!-- 网站信息列表 -->
-          <div v-else-if="webDetails" class="details-list">
-            <DetailItem
-              v-for="item in webDetailsDisplay"
-              :key="item.key"
-              :icon="item.icon"
-              :label="item.label"
-              :value="item.value"
-            />
-
-            <div v-if="webDetailsDisplay.length === 0" class="empty-state">
-              <span class="empty-icon">📭</span>
-              <p>暂无可显示的信息</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </var-popup>
+    <WebDetailsDrawer v-model:show="showWebDetails" :domain="domain" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
-import { hostApi, toolApi } from "@/api/api-ref.js";
-import DetailItem from "./components/DetailItem.vue";
+import { hostApi, toolApi, optApi } from "@/api/api-ref.js";
+import ForceBoostDialog from "@/components/ForceBoostDialog.vue";
+import WebDetailsDrawer from "@/components/WebDetailsDrawer.vue";
 
 // 状态管理
 const domain = ref("");
@@ -171,15 +170,18 @@ const isDetecting = ref(true);
 const isBoostEnabled = ref(false);
 const isBoostSupported = ref(true);
 const isBackendError = ref(false);
-const isOptimizing = ref(false);
-const countdown = ref(3);
 const currentTabId = ref(undefined);
+const isForceBoost = ref(false); // 标记是否是强制开启的加速
+const isChangingIP = ref(false); // 标记是否正在更换优选IP
+const currentType = ref(""); // 保存当前 host 的 type，用于调用 /opt/change 接口
+
+// 三连击检测相关状态
+const clickCount = ref(0);
+const clickTimer = ref(null);
+const showForceBoostDialog = ref(false);
 
 // 网站详情状态
 const showWebDetails = ref(false);
-const webDetails = ref(null);
-const loadingWebDetails = ref(false);
-const webDetailsError = ref("");
 
 const detectStatus = ref({
   icon: "🔍",
@@ -192,19 +194,17 @@ const optimizedNode = ref({
 });
 
 // 计算延迟百分比和颜色
-const latencyPercentage = computed(() => {
+computed(() => {
   const rtt = optimizedNode.value.rtt;
   return Math.min((rtt / 200) * 100, 100);
 });
-
-const latencyClass = computed(() => {
+computed(() => {
   const rtt = optimizedNode.value.rtt;
   if (rtt < 50) return "latency-excellent";
   if (rtt < 100) return "latency-good";
   if (rtt < 150) return "latency-fair";
   return "latency-poor";
 });
-
 // 检测域名是否支持CDN加速（预留接口，当前版本返回true）
 const checkCdnSupport = async (domain) => {
   try {
@@ -277,6 +277,12 @@ const getHost = async (domain) => {
     ) {
       isBoostEnabled.value = true;
       isBoostSupported.value = true; // 已经加速说明肯定支持
+      isForceBoost.value = false; // 清除强制标记
+
+      // 保存 type 用于后续更换 IP
+      if (response.data.data.type) {
+        currentType.value = response.data.data.type;
+      }
 
       // 从 API 响应中获取优化节点信息
       if (response.data.data.ip) {
@@ -294,6 +300,7 @@ const getHost = async (domain) => {
     } else {
       // 查询失败或无记录（但服务端有响应），需要检测域名是否支持加速
       isBoostEnabled.value = false;
+      isForceBoost.value = false; // 清除强制标记
 
       // 检测域名是否支持加速
       isBoostSupported.value = await checkCdnSupport(domain);
@@ -360,10 +367,40 @@ const toggleBoost = async () => {
     return;
   }
 
+  // 如果网站不支持加速，检测三连击
   if (!isBoostSupported.value) {
+    handleUnsupportedClick();
     return;
   }
 
+  // 执行加速开关逻辑
+  await performBoostToggle();
+};
+
+// 处理不支持加速时的点击
+const handleUnsupportedClick = () => {
+  clickCount.value++;
+
+  // 清除之前的定时器
+  if (clickTimer.value) {
+    clearTimeout(clickTimer.value);
+  }
+
+  // 检测是否达到三次点击
+  if (clickCount.value >= 3) {
+    clickCount.value = 0;
+    showForceBoostDialog.value = true;
+    return;
+  }
+
+  // 设置1秒后重置计数器
+  clickTimer.value = setTimeout(() => {
+    clickCount.value = 0;
+  }, 1000);
+};
+
+// 执行加速开关逻辑
+const performBoostToggle = async () => {
   try {
     const hostData = {
       domain: domain.value,
@@ -385,6 +422,11 @@ const toggleBoost = async () => {
           if (getResponse.data.code === 200 && getResponse.data.data) {
             console.log("获取 CDN 信息成功:", getResponse.data);
 
+            // 保存 type 用于后续更换 IP
+            if (getResponse.data.data.type) {
+              currentType.value = getResponse.data.data.type;
+            }
+
             // 更新优化节点信息
             if (getResponse.data.data.ip) {
               optimizedNode.value = {
@@ -404,14 +446,6 @@ const toggleBoost = async () => {
             };
           }
         }
-
-        // 等待1秒后重载当前网页，刷新DNS缓存
-        setTimeout(() => {
-          if (currentTabId.value) {
-            chrome.tabs.reload(currentTabId.value, { bypassCache: true });
-            console.log("已重载当前网页，刷新DNS缓存");
-          }
-        }, 1000);
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
@@ -430,6 +464,21 @@ const toggleBoost = async () => {
         isBoostEnabled.value = false;
         isBackendError.value = false; // 清除后端错误状态
         console.log("加速已关闭:", response.data);
+
+        // 如果是强制开启的加速，关闭后恢复原始状态
+        if (isForceBoost.value) {
+          isForceBoost.value = false;
+          isBoostSupported.value = false;
+          detectStatus.value = {
+            icon: "ℹ️",
+            text: "该网站不支持加速",
+          };
+        } else {
+          detectStatus.value = {
+            icon: "🌐",
+            text: "可加速网站",
+          };
+        }
       } else {
         // 服务端有响应但返回错误
         isBackendError.value = false;
@@ -464,6 +513,39 @@ const toggleBoost = async () => {
       };
     }
   }
+};
+
+// 处理强制加速确认
+const handleForceBoost = async () => {
+  // 临时标记为支持加速，执行开启逻辑
+  const originalSupported = isBoostSupported.value;
+  isBoostSupported.value = true;
+  isForceBoost.value = true; // 标记为强制开启
+
+  try {
+    await performBoostToggle();
+    // 如果成功开启，更新状态
+    detectStatus.value = {
+      icon: "✅",
+      text: "已强制开启加速",
+    };
+  } catch (error) {
+    // 如果失败，恢复原状态
+    isBoostSupported.value = originalSupported;
+    isForceBoost.value = false;
+    console.error("强制加速失败:", error);
+  }
+};
+
+// 处理取消强制加速
+const handleCancelForceBoost = () => {
+  clickCount.value = 0;
+  console.log("用户取消了强制加速");
+};
+
+// 打开 DNS 清理页面
+const openDnsClearPage = () => {
+  chrome.tabs.create({ url: "chrome://net-internals/#dns" });
 };
 
 // 获取盾牌状态文本
@@ -505,36 +587,79 @@ const toggleButtonClass = computed(() => {
 });
 
 // 重新优选
-const reoptimize = async () => {
-  if (isOptimizing.value) return;
+// 更换优选 IP
+const changeOptimizedIP = async () => {
+  if (isChangingIP.value) return;
 
-  isOptimizing.value = true;
-  countdown.value = 3;
+  // 检查是否有 type 参数
+  if (!currentType.value) {
+    console.error("缺少 type 参数，无法更换优选 IP");
+    detectStatus.value = {
+      icon: "❌",
+      text: "更换失败: 缺少必要参数",
+    };
+    return;
+  }
+
+  isChangingIP.value = true;
 
   try {
-    // 重新调用 hostPost 和 hostGet 获取最新的优化节点
-    const hostData = {
-      domain: domain.value,
-    };
+    // 调用 /opt/change 接口更换优选 IP，传递 type 参数
+    const response = await optApi.optChangeGet(currentType.value);
 
-    await hostApi.hostPost(hostData);
-    const response = await hostApi.hostGet(domain.value);
+    if (response.data.code === 200 || response.data.code === "200") {
+      console.log("更换优选 IP 成功:", response.data);
 
-    if (
-      response.data.code === 200 &&
-      response.data.data &&
-      response.data.data.ip
-    ) {
-      optimizedNode.value = {
-        ip: response.data.data.ip,
-        rtt: 0,
+      // 更换成功后，重新获取当前的优选 IP 信息
+      try {
+        const getResponse = await hostApi.hostGet(domain.value);
+
+        if (getResponse.data.code === 200 && getResponse.data.data) {
+          // 更新 type（可能会变化）
+          if (getResponse.data.data.type) {
+            currentType.value = getResponse.data.data.type;
+          }
+
+          // 更新 IP 信息
+          if (getResponse.data.data.ip) {
+            optimizedNode.value = {
+              ip: getResponse.data.data.ip,
+              rtt: 0,
+            };
+          }
+
+          // 显示成功提示
+          detectStatus.value = {
+            icon: "✅",
+            text: "已更换为新的优选 IP",
+          };
+
+          // 3秒后恢复状态提示
+          setTimeout(() => {
+            if (isBoostEnabled.value) {
+              detectStatus.value = {
+                icon: "✅",
+                text: "加速已启用",
+              };
+            }
+          }, 3000);
+        }
+      } catch (getError) {
+        console.error("获取新的优选 IP 信息失败:", getError);
+      }
+
+      isBackendError.value = false;
+    } else {
+      console.error("更换优选 IP 失败:", response.data);
+      detectStatus.value = {
+        icon: "❌",
+        text: `更换失败: ${response.data.message || "未知错误"}`,
       };
-      isBackendError.value = false; // 清除后端错误状态
     }
   } catch (error) {
-    console.error("重新优选失败:", error);
+    console.error("更换优选 IP 失败:", error);
 
-    // 只有在网络错误时才设置后端错误状态
+    // 判断是否是网络错误
     if (!error.response) {
       isBackendError.value = true;
       detectStatus.value = {
@@ -542,31 +667,64 @@ const reoptimize = async () => {
         text: "后端服务未启动",
       };
     } else {
-      // 服务端有响应但返回错误
       isBackendError.value = false;
+      const errorData = error.response?.data;
+      const errorMsg = errorData?.message || error.message || "未知错误";
       detectStatus.value = {
         icon: "❌",
-        text: `重新优选失败: ${error.response.status}`,
+        text: `更换失败: ${errorMsg}`,
       };
     }
   } finally {
-    isOptimizing.value = false;
+    isChangingIP.value = false;
   }
 };
 
 // 粒子动画样式
-const getParticleStyle = (index) => {
-  const x = Math.random() * 100;
-  const y = Math.random() * 100;
-  const delay = Math.random() * 5;
-  const duration = 3 + Math.random() * 4;
+// 验证是否为有效域名
+const isValidDomain = (hostname) => {
+  if (!hostname) return false;
 
-  return {
-    left: `${x}%`,
-    top: `${y}%`,
-    animationDelay: `${delay}s`,
-    animationDuration: `${duration}s`,
-  };
+  // 过滤特殊页面
+  const invalidPatterns = [
+    "newtab",
+    "extensions",
+    "settings",
+    "chrome",
+    "about:",
+    "edge:",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "::1",
+  ];
+
+  // 检查是否匹配无效模式
+  const lowerHostname = hostname.toLowerCase();
+  if (invalidPatterns.some((pattern) => lowerHostname.includes(pattern))) {
+    return false;
+  }
+
+  // 检查是否为IP地址(本地网络)
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+  if (ipv4Pattern.test(hostname) || ipv6Pattern.test(hostname)) {
+    // 检查是否为本地IP
+    if (
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("172.") ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1"
+    ) {
+      return false;
+    }
+  }
+
+  // 检查是否包含点(.)，基本的域名格式
+  return hostname.includes(".");
+
+
 };
 
 // 获取当前域名
@@ -575,656 +733,448 @@ onMounted(() => {
     const tab = tabs[0];
     if (tab?.url) {
       try {
-        domain.value = new URL(tab.url).hostname;
+        const url = new URL(tab.url);
+        domain.value = url.hostname;
         currentTabId.value = tab.id; // 保存当前标签页ID
+
+        // 验证域名有效性
+        if (!isValidDomain(domain.value)) {
+          // 如果不是有效域名，直接标记为不支持
+          isDetecting.value = false;
+          isBoostSupported.value = false;
+          isBoostEnabled.value = false;
+          detectStatus.value = {
+            icon: "ℹ️",
+            text: "该网站不支持加速",
+          };
+        }
       } catch {
         domain.value = "无法解析域名";
+        isDetecting.value = false;
+        isBoostSupported.value = false;
+        detectStatus.value = {
+          icon: "⚠️",
+          text: "无法解析域名",
+        };
       }
     } else {
       domain.value = "未获取到当前标签页";
+      isDetecting.value = false;
+      isBoostSupported.value = false;
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "未获取到当前标签页",
+      };
     }
   });
 });
 
 watch(domain, (newVal) => {
-  if (newVal) {
+  if (newVal && isValidDomain(newVal)) {
     isDetecting.value = true;
     getHost(newVal);
   }
 });
-
-// 网站详情相关方法
-const fetchWebDetails = async () => {
-  if (
-    !domain.value ||
-    domain.value === "无法解析域名" ||
-    domain.value === "未获取到当前标签页"
-  ) {
-    webDetailsError.value = "无效的域名";
-    return;
-  }
-
-  loadingWebDetails.value = true;
-  webDetailsError.value = "";
-  webDetails.value = null;
-
-  try {
-    const response = await toolApi.toolWebDetailsGet(domain.value);
-    if (
-      (response.data.code === 200 || response.data.code === "200") &&
-      response.data.data
-    ) {
-      webDetails.value = response.data.data;
-    } else {
-      webDetailsError.value = response.data.message || "获取网站信息失败";
-    }
-  } catch (error) {
-    console.error("获取网站信息失败:", error);
-    webDetailsError.value = error.message || "网络请求失败";
-  } finally {
-    loadingWebDetails.value = false;
-  }
-};
-
-// 当打开弹窗时自动获取网站信息
-watch(showWebDetails, (newVal) => {
-  if (newVal && !webDetails.value && !loadingWebDetails.value) {
-    fetchWebDetails();
-  }
-});
-
-const closeWebDetails = () => {
-  // 弹窗关闭时可选择清理数据
-  // webDetails.value = null;
-  // webDetailsError.value = "";
-};
-
-// 网站详情展示数据（处理字段不存在的情况）
-const webDetailsDisplay = computed(() => {
-  if (!webDetails.value) return [];
-
-  const details = webDetails.value;
-  const items = [
-    { key: "ip", icon: "🌐", label: "IP 地址", value: details.ip },
-    { key: "country", icon: "🌍", label: "国家", value: details.country },
-    {
-      key: "country_code",
-      icon: "🏳️",
-      label: "国家代码",
-      value: details.country_code,
-    },
-    { key: "region", icon: "📍", label: "地区", value: details.region },
-    {
-      key: "region_code",
-      icon: "🗺️",
-      label: "地区代码",
-      value: details.region_code,
-    },
-    { key: "city", icon: "🏙️", label: "城市", value: details.city },
-    {
-      key: "organization",
-      icon: "🏢",
-      label: "组织",
-      value: details.organization,
-    },
-    { key: "isp", icon: "📡", label: "ISP", value: details.isp },
-    { key: "asn", icon: "🔢", label: "ASN", value: details.asn },
-    {
-      key: "asn_organization",
-      icon: "🏛️",
-      label: "ASN 组织",
-      value: details.asn_organization,
-    },
-    { key: "timezone", icon: "🕐", label: "时区", value: details.timezone },
-    {
-      key: "offset",
-      icon: "⏱️",
-      label: "时区偏移",
-      value: details.offset ? `UTC+${details.offset / 3600}` : undefined,
-    },
-    { key: "latitude", icon: "🧭", label: "纬度", value: details.latitude },
-    { key: "longitude", icon: "🧭", label: "经度", value: details.longitude },
-    {
-      key: "continent_code",
-      icon: "🌏",
-      label: "洲代码",
-      value: details.continent_code,
-    },
-  ];
-
-  // 过滤掉值为 undefined, null, 或空字符串的项
-  return items.filter((item) => {
-    const value = item.value;
-    return value !== undefined && value !== null && value !== "";
-  });
-});
 </script>
 
 <style scoped>
-/* iOS 16 风格设计 */
-.ios-container {
-  width: 380px;
-  height: 600px;
-  background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
-  overflow: hidden;
+/* Container */
+.macos-container {
+  width: 360px;
+  min-height: 480px;
+  background: var(--macos-bg-primary);
+  display: flex;
+  flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    "SF Pro Text", sans-serif;
+  color: var(--macos-text-primary);
+  overflow: hidden;
 }
 
-.dark .ios-container {
-  background: linear-gradient(180deg, #1c1c1e 0%, #000000 100%);
-}
-
-/* 顶部导航栏 */
-.ios-header {
-  padding: 16px 20px 12px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-.dark .ios-header {
-  background: rgba(28, 28, 30, 0.72);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+/* Header */
+.macos-header {
+  padding: var(--macos-space-lg) var(--macos-space-lg) var(--macos-space-md);
+  border-bottom: 1px solid var(--macos-separator-light);
 }
 
 .header-content {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--macos-space-md);
 }
 
-.header-title h1 {
-  font-size: 22px;
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-title {
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  color: #1d1d1f;
+  line-height: 1.3;
+  letter-spacing: -0.4px;
   margin: 0;
+  color: var(--macos-text-primary);
 }
 
-.dark .header-title h1 {
-  color: #f5f5f7;
-}
-
-.header-subtitle {
+.domain-text {
   font-size: 13px;
-  color: #86868b;
+  color: var(--macos-text-secondary);
   margin: 2px 0 0;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 260px;
+  font-weight: 400;
 }
 
-.info-button {
+.header-actions {
+  display: flex;
+  gap: var(--macos-space-sm);
+  flex-shrink: 0;
+}
+
+.icon-button {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--macos-radius-md);
+  background: var(--macos-bg-secondary);
   border: none;
+  color: var(--macos-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #007aff;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--macos-transition-fast);
 }
 
-.dark .info-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #0a84ff;
-}
-
-.info-button:hover {
-  background: rgba(0, 122, 255, 0.1);
+.icon-button:hover {
+  background: var(--macos-bg-tertiary);
+  color: var(--macos-text-primary);
   transform: scale(1.05);
 }
 
-.info-button:active {
+.icon-button:active {
   transform: scale(0.95);
 }
 
-/* 主内容区 */
-.ios-content {
-  padding: 20px;
-  overflow-y: auto;
-  height: calc(600px - 72px);
-}
-
-/* 状态指示器 */
-.status-indicator {
+/* Main Content */
+.macos-main {
+  flex: 1;
+  padding: var(--macos-space-lg);
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  flex-direction: column;
+  gap: var(--macos-space-lg);
+  overflow-y: auto;
 }
 
-.dark .status-indicator {
-  background: rgba(58, 58, 60, 0.6);
-  border-color: rgba(255, 255, 255, 0.06);
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--macos-space-sm);
+  padding: var(--macos-space-sm) var(--macos-space-md);
+  border-radius: var(--macos-radius-lg);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--macos-transition-normal);
+}
+
+.status-badge.status-active {
+  background: color-mix(in srgb, var(--macos-success) 15%, transparent);
+  color: var(--macos-success);
+}
+
+.status-badge.status-idle {
+  background: color-mix(in srgb, var(--macos-accent) 15%, transparent);
+  color: var(--macos-accent);
+}
+
+.status-badge.status-error {
+  background: color-mix(in srgb, var(--macos-error) 15%, transparent);
+  color: var(--macos-error);
+}
+
+.status-badge.status-disabled {
+  background: var(--macos-bg-secondary);
+  color: var(--macos-text-tertiary);
 }
 
 .status-icon {
-  font-size: 20px;
+  font-size: 16px;
+  line-height: 1;
 }
 
-.status-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-  flex: 1;
+.status-label {
+  line-height: 1;
 }
 
-.dark .status-text {
-  color: #f5f5f7;
-}
-
-.status-active {
-  background: linear-gradient(
-    135deg,
-    rgba(52, 199, 89, 0.15) 0%,
-    rgba(48, 209, 88, 0.1) 100%
-  );
-  border-color: rgba(52, 199, 89, 0.2);
-}
-
-.status-error {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 149, 0, 0.15) 0%,
-    rgba(255, 159, 10, 0.1) 100%
-  );
-  border-color: rgba(255, 149, 0, 0.2);
-}
-
-.status-disabled {
-  opacity: 0.6;
-}
-
-/* 主控制卡片 */
-.control-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 24px;
-  padding: 32px 24px;
-  margin-bottom: 16px;
+/* Control Center */
+.control-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--macos-space-lg);
+  padding: var(--macos-space-2xl) 0;
 }
 
-.dark .control-card {
-  background: rgba(58, 58, 60, 0.7);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-
-/* 加速切换按钮 */
-.boost-toggle {
+.boost-button {
   position: relative;
   width: 120px;
   height: 120px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: all var(--macos-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dark .boost-toggle {
-  background: linear-gradient(135deg, #3a3a3c 0%, #2c2c2e 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.boost-toggle:disabled {
+.boost-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.boost-toggle:not(:disabled):hover {
+.boost-button.toggle-idle {
+  background: var(--macos-bg-secondary);
+  box-shadow: var(--macos-shadow-md);
+}
+
+.boost-button.toggle-idle:hover:not(:disabled) {
+  background: var(--macos-bg-tertiary);
+  box-shadow: var(--macos-shadow-lg);
   transform: scale(1.05);
 }
 
-.boost-toggle:not(:disabled):active {
-  transform: scale(0.98);
-}
-
-.toggle-active {
-  background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
-  box-shadow: 0 12px 32px rgba(52, 199, 89, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.toggle-error {
-  background: linear-gradient(135deg, #ff9500 0%, #ff9f0a 100%);
-  box-shadow: 0 12px 32px rgba(255, 149, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.toggle-disabled {
-  background: linear-gradient(135deg, #c7c7cc 0%, #d1d1d6 100%);
-  opacity: 0.6;
-}
-
-.dark .toggle-disabled {
-  background: linear-gradient(135deg, #48484a 0%, #3a3a3c 100%);
-}
-
-.toggle-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: #86868b;
-  transition: all 0.3s ease;
-}
-
-.toggle-active .toggle-icon {
-  color: white;
-}
-
-.toggle-error .toggle-icon {
-  color: white;
-}
-
-.dark .toggle-icon {
-  color: #98989d;
-}
-
-/* 脉冲环 */
-.pulse-ring {
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(52, 199, 89, 0.3) 0%,
-    transparent 70%
+.boost-button.toggle-active {
+  background: linear-gradient(
+    135deg,
+    var(--macos-success) 0%,
+    color-mix(in srgb, var(--macos-success) 85%, white) 100%
   );
+  box-shadow: 0 8px 24px
+      color-mix(in srgb, var(--macos-success) 40%, transparent),
+    var(--macos-shadow-lg);
+}
+
+.boost-button.toggle-active:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px
+      color-mix(in srgb, var(--macos-success) 50%, transparent),
+    var(--macos-shadow-xl);
+}
+
+.boost-button.toggle-error {
+  background: linear-gradient(
+    135deg,
+    var(--macos-error) 0%,
+    color-mix(in srgb, var(--macos-error) 85%, white) 100%
+  );
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--macos-error) 40%, transparent),
+    var(--macos-shadow-lg);
+}
+
+.boost-button.toggle-disabled {
+  background: var(--macos-bg-secondary);
+  box-shadow: var(--macos-shadow-sm);
+}
+
+.boost-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.active-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 2px solid var(--macos-success);
+  opacity: 0.3;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
   0%,
   100% {
-    opacity: 1;
     transform: scale(1);
+    opacity: 0.3;
   }
   50% {
-    opacity: 0.5;
     transform: scale(1.1);
+    opacity: 0.1;
   }
 }
 
-/* 切换标签 */
-.toggle-label {
+.boost-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boost-icon {
+  width: 56px;
+  height: 56px;
+}
+
+.boost-button.toggle-active .boost-icon {
+  color: white;
+}
+
+.boost-button.toggle-idle .boost-icon,
+.boost-button.toggle-disabled .boost-icon {
+  color: var(--macos-text-secondary);
+}
+
+.boost-button.toggle-error .boost-icon {
+  color: white;
+}
+
+.boost-icon .checkmark {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: checkmark 0.4s ease-out 0.2s forwards;
+}
+
+@keyframes checkmark {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.control-info {
   text-align: center;
 }
 
-.toggle-title {
-  font-size: 20px;
+.control-title {
+  font-size: 22px;
   font-weight: 600;
-  color: #1d1d1f;
-  margin: 0 0 4px;
   letter-spacing: -0.3px;
-}
-
-.dark .toggle-title {
-  color: #f5f5f7;
-}
-
-.toggle-description {
-  font-size: 13px;
-  color: #86868b;
   margin: 0;
+  color: var(--macos-text-primary);
 }
 
-/* 信息卡片 */
+.control-description {
+  font-size: 14px;
+  color: var(--macos-text-secondary);
+  margin: 4px 0 0;
+  font-weight: 400;
+}
+
+/* Info Card */
 .info-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--macos-glass-light);
   backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-radius: var(--macos-radius-xl);
+  border: 1px solid var(--macos-separator-light);
+  padding: var(--macos-space-lg);
+  box-shadow: var(--macos-shadow-sm);
 }
 
-.dark .info-card {
-  background: rgba(58, 58, 60, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1);
-}
-
-.info-header {
+.card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  align-items: center;
+  margin-bottom: var(--macos-space-md);
 }
 
-.info-title {
+.card-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1d1d1f;
+  color: var(--macos-text-primary);
 }
 
-.dark .info-title {
-  color: #f5f5f7;
-}
-
-.status-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #34c759;
-  background: rgba(52, 199, 89, 0.15);
+.badge {
   padding: 4px 10px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  border-radius: var(--macos-radius-sm);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.info-row {
+.badge-success {
+  background: color-mix(in srgb, var(--macos-success) 15%, transparent);
+  color: var(--macos-success);
+}
+
+.card-content {
+  margin-bottom: var(--macos-space-md);
+}
+
+.info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  gap: var(--macos-space-md);
+  padding: var(--macos-space-sm) 0;
 }
 
-.info-label {
-  font-size: 13px;
-  color: #86868b;
+.info-key {
+  font-size: 14px;
+  color: var(--macos-text-secondary);
+  font-weight: 400;
 }
 
 .info-value {
-  font-size: 13px;
+  font-size: 14px;
+  color: var(--macos-text-primary);
   font-weight: 500;
   font-family: "SF Mono", Monaco, "Courier New", monospace;
-  color: #1d1d1f;
+  text-align: right;
+  word-break: break-all;
 }
 
-.dark .info-value {
-  color: #f5f5f7;
-}
-
-/* 底部弹窗样式 */
-.web-details-popup :deep(.var-popup) {
-  border-radius: 20px 20px 0 0;
-  background: #f5f5f7;
-  max-height: 70vh;
-}
-
-.dark .web-details-popup :deep(.var-popup) {
-  background: #1c1c1e;
-}
-
-.popup-content {
-  padding: 0;
-}
-
-.popup-handle {
-  padding: 8px 0 12px;
+.card-footer {
   display: flex;
-  justify-content: center;
+  gap: var(--macos-space-sm);
+  padding-top: var(--macos-space-sm);
+  border-top: 1px solid var(--macos-separator-light);
 }
 
-.handle-bar {
-  width: 36px;
-  height: 5px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.dark .handle-bar {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px 16px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .popup-header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.popup-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-.dark .popup-header h2 {
-  color: #f5f5f7;
-}
-
-.close-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
+.action-button {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--macos-radius-md);
+  background: var(--macos-accent);
+  color: white;
   border: none;
+  font-size: 14px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #86868b;
+  gap: var(--macos-space-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--macos-transition-fast);
 }
 
-.dark .close-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: #98989d;
+.action-button:hover:not(:disabled) {
+  background: var(--macos-accent-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--macos-shadow-md);
 }
 
-.close-button:hover {
-  background: rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
+.action-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.close-button:active {
-  transform: scale(0.95);
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.popup-body {
-  padding: 20px;
-  max-height: calc(70vh - 80px);
-  overflow-y: auto;
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
-/* 加载/错误/空状态 */
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 20px;
-  gap: 16px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.loading-state p,
-.empty-state p {
-  font-size: 14px;
-  color: #86868b;
-  margin: 0;
-}
-
-.error-icon,
-.empty-icon {
-  font-size: 48px;
-}
-
-.error-message {
-  font-size: 14px;
-  color: #ff3b30;
-  text-align: center;
-  margin: 0;
-}
-
-.dark .error-message {
-  color: #ff453a;
-}
-
-/* 详情列表 */
-.details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 滑入滑出动画 */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateY(-12px);
-}
-
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-/* 滚动条样式 */
-.ios-content::-webkit-scrollbar,
-.popup-body::-webkit-scrollbar {
-  width: 6px;
-}
-
-.ios-content::-webkit-scrollbar-track,
-.popup-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.ios-content::-webkit-scrollbar-thumb,
-.popup-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.dark .ios-content::-webkit-scrollbar-thumb,
-.dark .popup-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-}
 </style>
