@@ -109,6 +109,30 @@
               optimizedNode.ip || "获取中..."
             }}</span>
           </div>
+          <div class="info-actions">
+            <button
+              @click="changeOptimizedIP"
+              :disabled="isChangingIP"
+              class="change-ip-button"
+              title="当前IP效果不好时，更换为新的优选IP"
+            >
+              <svg
+                v-if="!isChangingIP"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                />
+              </svg>
+              <span v-if="isChangingIP" class="spinner"></span>
+              <span>{{ isChangingIP ? "更换中..." : "更换优选IP" }}</span>
+            </button>
+          </div>
         </div>
       </transition>
     </main>
@@ -127,7 +151,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
-import { hostApi, toolApi } from "@/api/api-ref.js";
+import { hostApi, toolApi, optApi } from "@/api/api-ref.js";
 import ForceBoostDialog from "@/components/ForceBoostDialog.vue";
 import WebDetailsDrawer from "@/components/WebDetailsDrawer.vue";
 
@@ -141,6 +165,8 @@ const isOptimizing = ref(false);
 const countdown = ref(3);
 const currentTabId = ref(undefined);
 const isForceBoost = ref(false); // 标记是否是强制开启的加速
+const isChangingIP = ref(false); // 标记是否正在更换优选IP
+const currentType = ref(""); // 保存当前 host 的 type，用于调用 /opt/change 接口
 
 // 三连击检测相关状态
 const clickCount = ref(0);
@@ -247,6 +273,11 @@ const getHost = async (domain) => {
       isBoostEnabled.value = true;
       isBoostSupported.value = true; // 已经加速说明肯定支持
       isForceBoost.value = false; // 清除强制标记
+
+      // 保存 type 用于后续更换 IP
+      if (response.data.data.type) {
+        currentType.value = response.data.data.type;
+      }
 
       // 从 API 响应中获取优化节点信息
       if (response.data.data.ip) {
@@ -385,6 +416,11 @@ const performBoostToggle = async () => {
 
           if (getResponse.data.code === 200 && getResponse.data.data) {
             console.log("获取 CDN 信息成功:", getResponse.data);
+
+            // 保存 type 用于后续更换 IP
+            if (getResponse.data.data.type) {
+              currentType.value = getResponse.data.data.type;
+            }
 
             // 更新优化节点信息
             if (getResponse.data.data.ip) {
@@ -566,6 +602,11 @@ const reoptimize = async () => {
       response.data.data &&
       response.data.data.ip
     ) {
+      // 保存 type 用于后续更换 IP
+      if (response.data.data.type) {
+        currentType.value = response.data.data.type;
+      }
+
       optimizedNode.value = {
         ip: response.data.data.ip,
         rtt: 0,
@@ -592,6 +633,99 @@ const reoptimize = async () => {
     }
   } finally {
     isOptimizing.value = false;
+  }
+};
+
+// 更换优选 IP
+const changeOptimizedIP = async () => {
+  if (isChangingIP.value) return;
+
+  // 检查是否有 type 参数
+  if (!currentType.value) {
+    console.error("缺少 type 参数，无法更换优选 IP");
+    detectStatus.value = {
+      icon: "❌",
+      text: "更换失败: 缺少必要参数",
+    };
+    return;
+  }
+
+  isChangingIP.value = true;
+
+  try {
+    // 调用 /opt/change 接口更换优选 IP，传递 type 参数
+    const response = await optApi.optChangeGet(currentType.value);
+
+    if (response.data.code === 200 || response.data.code === "200") {
+      console.log("更换优选 IP 成功:", response.data);
+
+      // 更换成功后，重新获取当前的优选 IP 信息
+      try {
+        const getResponse = await hostApi.hostGet(domain.value);
+
+        if (getResponse.data.code === 200 && getResponse.data.data) {
+          // 更新 type（可能会变化）
+          if (getResponse.data.data.type) {
+            currentType.value = getResponse.data.data.type;
+          }
+
+          // 更新 IP 信息
+          if (getResponse.data.data.ip) {
+            optimizedNode.value = {
+              ip: getResponse.data.data.ip,
+              rtt: 0,
+            };
+          }
+
+          // 显示成功提示
+          detectStatus.value = {
+            icon: "✅",
+            text: "已更换为新的优选 IP",
+          };
+
+          // 3秒后恢复状态提示
+          setTimeout(() => {
+            if (isBoostEnabled.value) {
+              detectStatus.value = {
+                icon: "✅",
+                text: "加速已启用",
+              };
+            }
+          }, 3000);
+        }
+      } catch (getError) {
+        console.error("获取新的优选 IP 信息失败:", getError);
+      }
+
+      isBackendError.value = false;
+    } else {
+      console.error("更换优选 IP 失败:", response.data);
+      detectStatus.value = {
+        icon: "❌",
+        text: `更换失败: ${response.data.message || "未知错误"}`,
+      };
+    }
+  } catch (error) {
+    console.error("更换优选 IP 失败:", error);
+
+    // 判断是否是网络错误
+    if (!error.response) {
+      isBackendError.value = true;
+      detectStatus.value = {
+        icon: "⚠️",
+        text: "后端服务未启动",
+      };
+    } else {
+      isBackendError.value = false;
+      const errorData = error.response?.data;
+      const errorMsg = errorData?.message || error.message || "未知错误";
+      detectStatus.value = {
+        icon: "❌",
+        text: `更换失败: ${errorMsg}`,
+      };
+    }
+  } finally {
+    isChangingIP.value = false;
   }
 };
 
@@ -1098,6 +1232,74 @@ watch(domain, (newVal) => {
 
 .dark .info-value {
   color: #f5f5f7;
+}
+
+/* 信息卡片操作区域 */
+.info-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .info-actions {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.change-ip-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.change-ip-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+}
+
+.change-ip-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.change-ip-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dark .change-ip-button {
+  background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+.dark .change-ip-button:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.4);
+}
+
+/* 加载动画 */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 滑入滑出动画 */
