@@ -86,12 +86,11 @@ func main() {
 	router.Use(gin.Logger(), gin.Recovery(), buildCorsMiddleware(cfg))
 	handler.RegisterRoutes(router)
 
-	port := cfg.Server.NormalizePort()
-	log.Printf("Host service listening on %s using data file %s", port, cfg.Data.HostFile)
+	log.Printf("Host service listening on %s using data file %s", cfg.Server.Port, cfg.Data.HostFile)
 	log.Printf("Opt service using data file %s", cfg.Data.OptFile)
 	log.Printf("Tool service initialized with DNS resolver and IP geolocation service")
 	log.Printf("Config file: %s", configPath)
-	if err := router.Run(port); err != nil {
+	if err := router.Run(cfg.Server.Port); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

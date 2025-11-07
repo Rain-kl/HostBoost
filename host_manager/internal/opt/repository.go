@@ -12,7 +12,7 @@ var (
 	ErrNoOptDataFound    = errors.New("no opt data found")
 	ErrEmptyOptList      = errors.New("opt list is empty")
 	ErrInvalidType       = errors.New("invalid type")
-	ErrOnlyOneOptRemains = errors.New("cannot change opt: only one IP remains in the list")
+	ErrOnlyOneOptRemains = errors.New("优选 IP 存量不足, 无法更换IP, 考虑重新进行优选操作")
 )
 
 // Repository 优选数据仓库
