@@ -30,35 +30,6 @@ HostBoost 通过智能优选 CDN(如 Cloudflare)的 IP 地址并动态修改系�
 - ✅ **实时优化** - 定时优选最佳 IP
 - ✅ **跨平台支持** - 支持 Windows、macOS、Linux
 
-## 🏗️ 系统架构
-
-```mermaid
-flowchart LR
-    subgraph Browser["浏览器层"]
-        Ext["Chrome 扩展<br/>识别可加速网站"]
-    end
-    
-    subgraph Core["核心服务层(必需)"]
-        HostMgr["Host Manager<br/>管理 Hosts 文件"]
-    end
-    
-    subgraph Optional["优化层(可选)"]
-        CFOpt["CF Optimizer<br/>持续优选 IP"]
-    end
-    
-    Ext -->|"1. 发送加速请求"| HostMgr
-    CFOpt -->|"2. 主动推送优选 IP"| HostMgr
-    
-    style Core fill:#e1f5ff
-    style Optional fill:#fff4e1
-    style Browser fill:#f0f0f0
-```
-
-**架构特点**:
-
-- Host Manager 是核心服务,可独立运行
-- CF Optimizer 主动推送最优 IP
-- Chrome 扩展提供用户交互界面
 
 ## 🚀 快速开始
 
@@ -67,7 +38,31 @@ flowchart LR
 - Chrome/Edge 浏览器(版本 90+)
 - 管理员权限(用于修改 Hosts 文件)
 
-### 开发运行
+### 使用说明
+
+1. 访问 [Release](https://github.com/Rain-kl/HostBoost/releases) 下载最新编译包： 
+    ```
+    chrome-extension.zip
+    # 根据系统以及处理器架构选择对应二进制文件
+    cf_optimization-xxx
+    host_manager-xxx
+    ```
+2. 安装chrome拓展
+   - 解压 `chrome-extension.zip`
+   - 打开 Chromium 浏览器，在地址栏输入 `chrome://extensions/`，然后按回车键。
+   - 在右上角，找到并打开“开发者模式”开关。
+   - 点击“加载已解压的扩展程序”按钮。
+   - 在弹出的文件选择对话框中，找到并选择您解压好的扩展程序文件夹，然后点击“选择文件夹”。
+
+3. 以管理员的身份运行 `host_manager` 
+
+4. 运行 `cf_optimization` 等待优选完成
+
+5. 【可选】关闭 `cf_optimization`
+
+
+
+### 开发调试
 
 ```bash
 git clone https://github.com/Rain-kl/HostBoost.git
@@ -101,6 +96,37 @@ go run main.go
 
 1. 启动所有服务后,进入需要提速的网站在拓展里开启加速
 2. 刷新浏览器dns缓存
+
+
+## 🏗️ 系统架构
+
+```mermaid
+flowchart LR
+    subgraph Browser["浏览器层"]
+        Ext["Chrome 扩展<br/>识别可加速网站"]
+    end
+    
+    subgraph Core["核心服务层(必需)"]
+        HostMgr["Host Manager<br/>管理 Hosts 文件"]
+    end
+    
+    subgraph Optional["优化层(可选)"]
+        CFOpt["CF Optimizer<br/>持续优选 IP"]
+    end
+    
+    Ext -->|"1. 发送加速请求"| HostMgr
+    CFOpt -->|"2. 主动推送优选 IP"| HostMgr
+    
+    style Core fill:#e1f5ff
+    style Optional fill:#fff4e1
+    style Browser fill:#f0f0f0
+```
+
+**架构特点**:
+
+- Host Manager 是核心服务,可独立运行
+- CF Optimizer 主动推送最优 IP
+- Chrome 扩展提供用户交互界面
 
 
 ## 📦 项目结构
@@ -198,9 +224,7 @@ A: 目前支持使用 Cloudflare CDN 的网站,未来将支持更多。
 
 ## 🤝 贡献
 
-欢迎贡献代码、报告问题或提出建议!
-
-项目使用monorepo策略，不同模块在不同的 git 分支上开发, 贡献时请向对应的分支提交代码
+项目使用 `monorepo` 策略，不同模块在不同的 git 分支上开发, 贡献时请向对应的分支提交代码
 
 
 ## 📄 许可证
