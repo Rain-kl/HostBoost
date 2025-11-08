@@ -105,9 +105,9 @@ jobs:
                   for dir in cf-opt-*; do
                     cd "$dir"
                     if [[ -f *.exe ]]; then
-                      zip "../release/${dir}.zip" *
+                      zip "../../release/${dir}.zip" *
                     else
-                      tar czf "../release/${dir}.tar.gz" *
+                      tar czf "../../release/${dir}.tar.gz" *
                     fi
                     cd ..
                   done
@@ -122,7 +122,6 @@ jobs:
                   body: |
                       ## Cloudflare Optimization Tool Release
                       **Version:** ${{ steps.version.outputs.version }}
-                      **Build Date:** ${{ github.event.head_commit.timestamp }}
 
                       ### Supported Platforms
                       - Linux (amd64, arm64)
@@ -130,7 +129,7 @@ jobs:
                       - macOS (amd64, arm64)
 
                       ${{ github.event.inputs.release_notes }}
-                  files: artifacts/release/*
+                  files: release/*
                   draft: false
                   prerelease: true
               env:
