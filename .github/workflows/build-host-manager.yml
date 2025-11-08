@@ -1,137 +1,137 @@
 name: Build Host Manager
 
 on:
-    workflow_dispatch:
-        inputs:
-            release_notes:
-                description: "Release notes (optional)"
-                required: false
-                default: ""
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: "Release notes (optional)"
+        required: false
+        default: ""
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                include:
-                    - os: linux
-                      arch: amd64
-                      goos: linux
-                      goarch: amd64
-                    - os: linux
-                      arch: arm64
-                      goos: linux
-                      goarch: arm64
-                    - os: windows
-                      arch: amd64
-                      goos: windows
-                      goarch: amd64
-                    - os: darwin
-                      arch: amd64
-                      goos: darwin
-                      goarch: amd64
-                    - os: darwin
-                      arch: arm64
-                      goos: darwin
-                      goarch: arm64
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+          - os: windows
+            arch: amd64
+            goos: windows
+            goarch: amd64
+          - os: darwin
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+          - os: darwin
+            arch: arm64
+            goos: darwin
+            goarch: arm64
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: "1.24"
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
 
-            - name: Generate version number
-              id: version
-              run: |
-                  VERSION=$(date +'%Y.%m.%d.%H%M')
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "Generated version: $VERSION"
+      - name: Generate version number
+        id: version
+        run: |
+          VERSION=$(date +'%Y.%m.%d.%H%M')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
 
-            - name: Build binary
-              working-directory: ./host_manager
-              env:
-                  GOOS: ${{ matrix.goos }}
-                  GOARCH: ${{ matrix.goarch }}
-                  CGO_ENABLED: 0
-              run: |
-                  VERSION="${{ steps.version.outputs.version }}"
-                  BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')
+      - name: Build binary
+        working-directory: ./host_manager
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')
 
-                  OUTPUT_NAME="host-manager-${{ matrix.os }}-${{ matrix.arch }}"
-                  if [ "${{ matrix.goos }}" == "windows" ]; then
-                    OUTPUT_NAME="${OUTPUT_NAME}.exe"
-                  fi
+          OUTPUT_NAME="host-manager-${{ matrix.os }}-${{ matrix.arch }}"
+          if [ "${{ matrix.goos }}" == "windows" ]; then
+            OUTPUT_NAME="${OUTPUT_NAME}.exe"
+          fi
 
-                  go build -ldflags="-s -w -X 'main.Version=$VERSION' -X 'main.BuildTime=$BUILD_TIME'" -o "$OUTPUT_NAME" .
+          go build -ldflags="-s -w -X 'main.Version=$VERSION' -X 'main.BuildTime=$BUILD_TIME'" -o "$OUTPUT_NAME" .
 
-                  echo "Built: $OUTPUT_NAME"
-                  ls -lh "$OUTPUT_NAME"
+          echo "Built: $OUTPUT_NAME"
+          ls -lh "$OUTPUT_NAME"
 
-            - name: Upload artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: host-manager-${{ matrix.os }}-${{ matrix.arch }}-${{ steps.version.outputs.version }}
-                  path: host_manager/host-manager-${{ matrix.os }}-${{ matrix.arch }}*
-                  retention-days: 90
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-manager-${{ matrix.os }}-${{ matrix.arch }}-${{ steps.version.outputs.version }}
+          path: host_manager/host-manager-${{ matrix.os }}-${{ matrix.arch }}*
+          retention-days: 90
 
-    release:
-        needs: build
-        runs-on: ubuntu-latest
+  release:
+    needs: build
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Generate version number
-              id: version
-              run: |
-                  VERSION=$(date +'%Y.%m.%d.%H%M')
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Generate version number
+        id: version
+        run: |
+          VERSION=$(date +'%Y.%m.%d.%H%M')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-            - name: Download all artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  path: ./artifacts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
 
-            - name: Create release archives
-              run: |
-                  mkdir -p release
-                  cd artifacts
-                  for dir in host-manager-*; do
-                    cd "$dir"
-                    if [[ -f *.exe ]]; then
-                      zip "../release/${dir}.zip" *
-                    else
-                      tar czf "../release/${dir}.tar.gz" *
-                    fi
-                    cd ..
-                  done
-                  cd ..
-                  ls -lh release/
+      - name: Create release archives
+        run: |
+          mkdir -p release
+          cd artifacts
+          for dir in host-manager-*; do
+            cd "$dir"
+            if [[ -f *.exe ]]; then
+              zip "../../release/${dir}.zip" *
+            else
+              tar czf "../../release/${dir}.tar.gz" *
+            fi
+            cd ..
+          done
+          cd ..
+          ls -lh release/
 
-            - name: Create Release
-              uses: softprops/action-gh-release@v1
-              with:
-                  tag_name: host-mgr-v${{ steps.version.outputs.version }}
-                  name: Host Manager v${{ steps.version.outputs.version }}
-                  body: |
-                      ## Host Manager Release
-                      **Version:** ${{ steps.version.outputs.version }}
-                      **Build Date:** ${{ github.run_started_at }}
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: host-mgr-v${{ steps.version.outputs.version }}
+          name: Host Manager v${{ steps.version.outputs.version }}
+          body: |
+            ## Host Manager Release
+            **Version:** ${{ steps.version.outputs.version }}
+            **Build Date:** ${{ github.run_started_at }}
 
-                      ### Supported Platforms
-                      - Linux (amd64, arm64)
-                      - Windows (amd64)
-                      - macOS (amd64, arm64)
+            ### Supported Platforms
+            - Linux (amd64, arm64)
+            - Windows (amd64)
+            - macOS (amd64, arm64)
 
-                      ${{ github.event.inputs.release_notes }}
-                  files: artifacts/release/*
-                  draft: false
-                  prerelease: true
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ${{ github.event.inputs.release_notes }}
+          files: artifacts/release/*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
