@@ -117,7 +117,7 @@ jobs:
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
-                  tag_name: cf-opt-v${{ steps.version.outputs.version }}
+                  tag_name: CF-OPT-${{ steps.version.outputs.version }}
                   name: Cloudflare Optimization v${{ steps.version.outputs.version }}
                   body: |
                       ## Cloudflare Optimization Tool Release
