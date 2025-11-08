@@ -130,7 +130,7 @@ jobs:
             - macOS (amd64, arm64)
 
             ${{ github.event.inputs.release_notes }}
-          files: artifacts/release/*
+          files: release/*
           draft: false
           prerelease: true
         env:
