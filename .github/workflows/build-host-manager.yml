@@ -117,7 +117,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: host-mgr-v${{ steps.version.outputs.version }}
+          tag_name: MGR-${{ steps.version.outputs.version }}
           name: Host Manager v${{ steps.version.outputs.version }}
           body: |
             ## Host Manager Release
