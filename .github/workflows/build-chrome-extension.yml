@@ -76,11 +76,9 @@ jobs:
                   body: |
                       ## Chrome Extension Release
                       **Version:** ${{ steps.version.outputs.version }}
-                      **Build Date:** ${{ github.event.head_commit.timestamp }}
-
                       ${{ github.event.inputs.release_notes }}
                   files: chrome-extension-${{ steps.version.outputs.version }}.zip
                   draft: false
-                  prerelease: false
+                  prerelease: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
