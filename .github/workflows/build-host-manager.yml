@@ -122,7 +122,6 @@ jobs:
           body: |
             ## Host Manager Release
             **Version:** ${{ steps.version.outputs.version }}
-            **Build Date:** ${{ github.run_started_at }}
 
             ### Supported Platforms
             - Linux (amd64, arm64)
