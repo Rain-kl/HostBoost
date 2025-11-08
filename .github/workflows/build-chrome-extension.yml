@@ -71,7 +71,6 @@ jobs:
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
-                  tag_name: chrome-ext-v${{ steps.version.outputs.version }}
                   name: Chrome Extension v${{ steps.version.outputs.version }}
                   body: |
                       ## Chrome Extension Release
