@@ -132,6 +132,6 @@ jobs:
                       ${{ github.event.inputs.release_notes }}
                   files: artifacts/release/*
                   draft: false
-                  prerelease: false
+                  prerelease: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
