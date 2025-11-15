@@ -62,7 +62,7 @@ jobs:
                   cd ../..
 
             - name: Upload artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v3
               with:
                   name: chrome-extension-${{ steps.version.outputs.version }}
                   path: chrome-extension-${{ steps.version.outputs.version }}.zip
@@ -71,7 +71,7 @@ jobs:
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
-                  tag_name: chrome-ext-v${{ steps.version.outputs.version }}
+                  tag_name: CRX-${{ steps.version.outputs.version }}
                   name: Chrome Extension v${{ steps.version.outputs.version }}
                   body: |
                       ## Chrome Extension Release
