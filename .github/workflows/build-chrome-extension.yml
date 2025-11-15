@@ -1,0 +1,84 @@
+name: Build Chrome Extension
+
+on:
+    workflow_dispatch:
+        inputs:
+            release_notes:
+                description: "Release notes (optional)"
+                required: false
+                default: ""
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 8
+
+            - name: Generate version number
+              id: version
+              run: |
+                  VERSION=$(date +'%Y.%m.%d.%H%M')
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "Generated version: $VERSION"
+
+            - name: Update package.json version
+              working-directory: ./chrome_extention
+              run: |
+                  VERSION="${{ steps.version.outputs.version }}"
+                  node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); pkg.version = '$VERSION'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+                  echo "Updated package.json to version $VERSION"
+
+            - name: Update manifest.json version
+              working-directory: ./chrome_extention
+              run: |
+                  VERSION="${{ steps.version.outputs.version }}"
+                  node -e "const fs = require('fs'); const manifest = JSON.parse(fs.readFileSync('public/manifest.json', 'utf8')); manifest.version = '$VERSION'; fs.writeFileSync('public/manifest.json', JSON.stringify(manifest, null, 2));"
+                  echo "Updated manifest.json to version $VERSION"
+
+            - name: Install dependencies
+              working-directory: ./chrome_extention
+              run: pnpm install
+
+            - name: Build extension
+              working-directory: ./chrome_extention
+              run: pnpm run build
+
+            - name: Create release archive
+              run: |
+                  cd chrome_extention/dist
+                  zip -r ../../chrome-extension-${{ steps.version.outputs.version }}.zip .
+                  cd ../..
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: chrome-extension-${{ steps.version.outputs.version }}
+                  path: chrome-extension-${{ steps.version.outputs.version }}.zip
+                  retention-days: 90
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: CRX-${{ steps.version.outputs.version }}
+                  name: Chrome Extension v${{ steps.version.outputs.version }}
+                  body: |
+                      ## Chrome Extension Release
+                      **Version:** ${{ steps.version.outputs.version }}
+                      ${{ github.event.inputs.release_notes }}
+                  files: chrome-extension-${{ steps.version.outputs.version }}.zip
+                  draft: false
+                  prerelease: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
