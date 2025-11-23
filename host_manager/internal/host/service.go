@@ -20,7 +20,7 @@ type Service struct {
 func NewService(repo *FileRepository) *Service {
 	return &Service{
 		repo:   repo,
-		syncer: hostsync.NewSyncer("hosts.json"),
+		syncer: hostsync.NewSyncer(repo.Path),
 	}
 }
 
