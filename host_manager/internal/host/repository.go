@@ -19,7 +19,7 @@ var (
 
 // FileRepository manages hosts persisted in a JSON file to simulate /etc/hosts.
 type FileRepository struct {
-	path  string
+	Path  string // exported for use by Service to create syncer with same path
 	hosts map[string]Host
 	mu    sync.RWMutex
 }
@@ -27,7 +27,7 @@ type FileRepository struct {
 // NewFileRepository constructs a file-backed repository and loads existing state.
 func NewFileRepository(path string) (*FileRepository, error) {
 	repo := &FileRepository{
-		path:  path,
+		Path:  path,
 		hosts: make(map[string]Host),
 	}
 
@@ -132,13 +132,13 @@ func (r *FileRepository) UpdateIP(domain, newIP string) error {
 }
 
 func (r *FileRepository) ensureFile() error {
-	dir := filepath.Dir(r.path)
+	dir := filepath.Dir(r.Path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
 
-	if _, err := os.Stat(r.path); os.IsNotExist(err) {
-		if err := os.WriteFile(r.path, []byte("[]"), 0o644); err != nil {
+	if _, err := os.Stat(r.Path); os.IsNotExist(err) {
+		if err := os.WriteFile(r.Path, []byte("[]"), 0o644); err != nil {
 			return err
 		}
 	}
@@ -147,7 +147,7 @@ func (r *FileRepository) ensureFile() error {
 }
 
 func (r *FileRepository) load() error {
-	raw, err := os.ReadFile(r.path)
+	raw, err := os.ReadFile(r.Path)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (r *FileRepository) persistLocked() error {
 		return err
 	}
 
-	tmp, err := os.CreateTemp(filepath.Dir(r.path), "hosts-*.json")
+	tmp, err := os.CreateTemp(filepath.Dir(r.Path), "hosts-*.json")
 	if err != nil {
 		return err
 	}
@@ -192,5 +192,5 @@ func (r *FileRepository) persistLocked() error {
 		return err
 	}
 
-	return os.Rename(tmp.Name(), r.path)
+	return os.Rename(tmp.Name(), r.Path)
 }
