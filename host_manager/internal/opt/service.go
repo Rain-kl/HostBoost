@@ -13,10 +13,10 @@ type Service struct {
 }
 
 // NewService 创建新的优选服务
-func NewService(repo *Repository) *Service {
+func NewService(repo *Repository, hostPath string) *Service {
 	return &Service{
 		repo:   repo,
-		syncer: hostsync.NewSyncer("hosts.json"),
+		syncer: hostsync.NewSyncer(hostPath),
 	}
 }
 

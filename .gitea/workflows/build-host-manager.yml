@@ -73,7 +73,7 @@ jobs:
           ls -lh "$OUTPUT_NAME"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: host-manager-${{ matrix.os }}-${{ matrix.arch }}-${{ steps.version.outputs.version }}
           path: host_manager/host-manager-${{ matrix.os }}-${{ matrix.arch }}*
@@ -94,7 +94,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           path: ./artifacts
 

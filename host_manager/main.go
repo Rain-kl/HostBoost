@@ -74,7 +74,7 @@ func main() {
 	}
 
 	// 初始化 opt service
-	optSvc := opt.NewService(optRepo)
+	optSvc := opt.NewService(optRepo, cfg.Data.HostFile)
 	extSvc.OptService = optSvc
 
 	// 初始化 tool service
