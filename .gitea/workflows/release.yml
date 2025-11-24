@@ -1,0 +1,162 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号 (例如: v1.0.0)"
+        required: false
+        default: "manual"
+        type: string
+
+jobs:
+  # 构建 Chrome 扩展
+  build-chrome-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: chrome_extention/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: chrome_extention
+        run: pnpm install
+
+      - name: Build Chrome Extension
+        working-directory: chrome_extention
+        run: pnpm build
+
+      - name: Package Chrome Extension
+        working-directory: chrome_extention
+        run: |
+          cd dist
+          zip -r ../chrome-extension.zip .
+          cd ..
+
+      - name: Upload Chrome Extension
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-extension
+          path: chrome_extention/chrome-extension.zip
+
+  # 构建 Host Manager
+  build-host-manager:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          check-latest: true
+          cache-dependency-path: host_manager/go.sum
+
+      - name: Build Host Manager
+        working-directory: host_manager
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          OUTPUT_NAME="host_manager-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            OUTPUT_NAME="${OUTPUT_NAME}.exe"
+          fi
+          go build -ldflags="-s -w" -o "${OUTPUT_NAME}" main.go
+
+      - name: Upload Host Manager
+        uses: actions/upload-artifact@v3
+        with:
+          name: host-manager-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: host_manager/host_manager-*
+
+  # 构建 Cloudflare Optimization
+  build-cf-optimization:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.18"
+          check-latest: true
+          cache-dependency-path: cloudflare_optimization/go.sum
+
+      - name: Build CF Optimization
+        working-directory: cloudflare_optimization
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          OUTPUT_NAME="cf_optimization-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            OUTPUT_NAME="${OUTPUT_NAME}.exe"
+          fi
+          go build -ldflags="-s -w" -o "${OUTPUT_NAME}" main.go
+
+      - name: Upload CF Optimization
+        uses: actions/upload-artifact@v3
+        with:
+          name: cf-optimization-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: cloudflare_optimization/cf_optimization-*
+
+  # 创建 GitHub Release
+  release:
+    needs: [build-chrome-extension, build-host-manager, build-cf-optimization]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
